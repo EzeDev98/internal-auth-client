@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Form, FormGroup, TextInput, TextArea, Switch, Alert } from '@patternfly/react-core';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
+import QueryState from '../../shared/components/QueryState';
 import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import { getClient, updateClient } from './api';
@@ -32,7 +33,9 @@ export default function ClientDetailPage() {
   const [serverError, setServerError] = useState(null);
   const [saved, setSaved] = useState(false);
 
-  const { data: client, isLoading, isError, error } = useQuery({
+  const {
+    data: client, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['clients', clientId],
     queryFn: () => getClient(clientId),
   });
@@ -72,14 +75,10 @@ export default function ClientDetailPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className={styles.pageBody}>Loading...</div>;
-  }
-
-  if (isError) {
+  if (isLoading || isError) {
     return (
       <div className={styles.pageBody}>
-        <Alert variant="danger" title={error.message} />
+        <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch} />
       </div>
     );
   }

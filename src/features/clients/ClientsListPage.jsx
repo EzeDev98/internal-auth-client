@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import DataTable from '../../shared/components/DataTable';
+import QueryState from '../../shared/components/QueryState';
 import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import CreateClientModal from './CreateClientModal';
@@ -36,7 +37,9 @@ export default function ClientsListPage() {
   const [perPage, setPerPage] = useState(20);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['clients', page, perPage],
     queryFn: () => listClients({ page: page - 1, size: perPage }),
   });
@@ -60,23 +63,23 @@ export default function ClientsListPage() {
         </Button>
       </div>
 
-      {isError && <p className={styles.error}>{error.message}</p>}
-
-      <DataTable
-        ariaLabel="Client applications"
-        columns={COLUMNS}
-        rows={rows}
-        rowKey={(row) => row.id}
-        page={page}
-        perPage={perPage}
-        itemCount={itemCount}
-        onSetPage={(_event, newPage) => setPage(newPage)}
-        onPerPageSelect={(_event, newPerPage) => {
-          setPerPage(newPerPage);
-          setPage(1);
-        }}
-        emptyStateMessage={isLoading ? 'Loading...' : 'No client applications found.'}
-      />
+      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+        <DataTable
+          ariaLabel="Client applications"
+          columns={COLUMNS}
+          rows={rows}
+          rowKey={(row) => row.id}
+          page={page}
+          perPage={perPage}
+          itemCount={itemCount}
+          onSetPage={(_event, newPage) => setPage(newPage)}
+          onPerPageSelect={(_event, newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+          emptyStateMessage="No client applications found."
+        />
+      </QueryState>
 
       {isCreateOpen && (
         <CreateClientModal onClose={() => setIsCreateOpen(false)} onCreated={handleCreated} />

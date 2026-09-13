@@ -6,6 +6,7 @@ import {
   getUserPermissionGroups,
   listSessions,
   createUser,
+  invalidateUserSession,
 } from '../lib/authServerClient.js';
 import { requireSession } from '../middleware/requireSession.js';
 import { verifyCsrf } from '../middleware/csrf.js';
@@ -78,6 +79,21 @@ router.get('/:username/sessions', requireSession, async (req, res) => {
     page: req.query.page,
     size: req.query.size,
   });
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+// Step 10B - Sessions - List Revoke action. Mutates state, so verifyCsrf
+// applies, same pattern as this router's own POST / above. clientId is
+// required by the upstream endpoint (see authServerClient.js's comment on
+// invalidateUserSession) and is passed through as a query param, same way
+// GET /:username already carries it.
+router.delete('/:username/sessions', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await invalidateUserSession(req.session.accessToken, req.params.username, req.query.clientId);
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {

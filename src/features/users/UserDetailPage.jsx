@@ -5,6 +5,7 @@ import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Tabs from '../../shared/components/Tabs';
 import Badge from '../../shared/components/Badge';
 import DataTable from '../../shared/components/DataTable';
+import QueryState from '../../shared/components/QueryState';
 import { getUser, getUserRoles, getUserPermissionGroups, getUserSessions } from './api';
 import styles from './UserDetailPage.module.css';
 
@@ -36,50 +37,58 @@ function OverviewTab({ user }) {
 }
 
 function RolesTab({ username }) {
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['users', username, 'roles'],
     queryFn: () => getUserRoles(username),
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <Alert variant="danger" title={error.message} />;
-
   const roles = data ?? [];
-  if (roles.length === 0) return <p>No roles assigned.</p>;
 
   return (
-    <ul className={styles.plainList}>
-      {roles.map((role) => (
-        <li key={role.roleId}>
-          <strong>{role.roleName}</strong>
-          {role.description && <span className={styles.listDescription}> — {role.description}</span>}
-        </li>
-      ))}
-    </ul>
+    <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+      {roles.length === 0 ? (
+        <p>No roles assigned.</p>
+      ) : (
+        <ul className={styles.plainList}>
+          {roles.map((role) => (
+            <li key={role.roleId}>
+              <strong>{role.roleName}</strong>
+              {role.description && <span className={styles.listDescription}> — {role.description}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </QueryState>
   );
 }
 
 function PermissionGroupsTab({ username }) {
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['users', username, 'permission-groups'],
     queryFn: () => getUserPermissionGroups(username),
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <Alert variant="danger" title={error.message} />;
-
   const groups = data ?? [];
-  if (groups.length === 0) return <p>No permission groups assigned.</p>;
 
   return (
-    <ul className={styles.plainList}>
-      {groups.map((group) => (
-        <li key={group.groupId}>
-          <strong>{group.groupName}</strong>
-          {group.description && <span className={styles.listDescription}> — {group.description}</span>}
-        </li>
-      ))}
-    </ul>
+    <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+      {groups.length === 0 ? (
+        <p>No permission groups assigned.</p>
+      ) : (
+        <ul className={styles.plainList}>
+          {groups.map((group) => (
+            <li key={group.groupId}>
+              <strong>{group.groupName}</strong>
+              {group.description && <span className={styles.listDescription}> — {group.description}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </QueryState>
   );
 }
 
@@ -100,23 +109,25 @@ const SESSION_COLUMNS = [
 ];
 
 function SessionsTab({ username, clientId }) {
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['users', username, 'sessions', clientId],
     queryFn: () => getUserSessions(username, clientId),
   });
 
-  if (isError) return <Alert variant="danger" title={error.message} />;
-
   const rows = data?.content ?? [];
 
   return (
-    <DataTable
-      ariaLabel="Sessions"
-      columns={SESSION_COLUMNS}
-      rows={rows}
-      rowKey={(row) => row.id}
-      emptyStateMessage={isLoading ? 'Loading...' : 'No sessions found.'}
-    />
+    <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+      <DataTable
+        ariaLabel="Sessions"
+        columns={SESSION_COLUMNS}
+        rows={rows}
+        rowKey={(row) => row.id}
+        emptyStateMessage="No sessions found."
+      />
+    </QueryState>
   );
 }
 
@@ -125,7 +136,9 @@ export default function UserDetailPage() {
   const [searchParams] = useSearchParams();
   const clientId = searchParams.get('clientId');
 
-  const { data: user, isLoading, isError, error } = useQuery({
+  const {
+    data: user, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['users', username, clientId],
     queryFn: () => getUser(username, clientId),
     enabled: Boolean(clientId),
@@ -146,14 +159,10 @@ export default function UserDetailPage() {
     );
   }
 
-  if (isLoading) {
-    return <div className={styles.pageBody}>Loading...</div>;
-  }
-
-  if (isError) {
+  if (isLoading || isError) {
     return (
       <div className={styles.pageBody}>
-        <Alert variant="danger" title={error.message} />
+        <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch} />
       </div>
     );
   }

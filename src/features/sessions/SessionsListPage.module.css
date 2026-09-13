@@ -1,0 +1,33 @@
+.pageBody {
+  padding: 24px;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  margin: 16px 0;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  max-width: 280px;
+  flex: 1;
+}
+
+.statusSelect {
+  max-width: 200px;
+}
+
+.error {
+  color: var(--pf-t--global--text--color--status--danger--default);
+  font-size: var(--text-sm);
+  margin-bottom: 12px;
+}

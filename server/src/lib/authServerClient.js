@@ -126,6 +126,67 @@ export function listSessions(accessToken, { username, clientId, ipAddress, devic
   });
 }
 
+// Step 10B - Sessions - List Revoke action. The real upstream endpoint is
+// DELETE ${app.title}/users/{username}/sessions?clientId=... (see
+// UserSessionController#invalidateSession) - NOT "POST /session/invalidate"
+// as the original plan assumed; that route doesn't exist on the server.
+// clientId is required because username alone doesn't identify a unique
+// account (see getUser's comment above) - the frontend now gets it from
+// each session row's own clientId field (Step 10B, server-side).
+export function invalidateUserSession(accessToken, username, clientId) {
+  return client.delete(`/users/${encodeURIComponent(username)}/sessions`, {
+    params: { clientId },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 11A - Settings - Signing keys panel. New GET
+// ${app.title}/admin/signing-keys (SigningKeyController#list) - the plan
+// only names the existing rotate endpoint below; nothing upstream exposed
+// the current key/history a real panel needs to show before a rotate, so
+// this endpoint is additive (same reasoning as Step 2H's password-reset
+// endpoints).
+export function listSigningKeys(accessToken) {
+  return client.get('/admin/signing-keys', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 11A - existing POST /admin/signing-keys/rotate
+// (SigningKeyController#rotate). No request body upstream.
+export function rotateSigningKey(accessToken) {
+  return client.post('/admin/signing-keys/rotate', {}, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 8A - PermissionController's GET /roles (@PreAuthorize HAS_ADMIN),
+// same bearer-forwarding pattern as listClientApplications/listUsers
+// above. Unpaginated - RoleQueryServiceImpl backs it with a plain
+// findAll(), so no page/size params to forward.
+export function listRoles(accessToken) {
+  return client.get('/roles', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 8B - existing POST /roles (PermissionController#createRole),
+// same bearer-forwarding pattern as createClientApplication above.
+export function createRole(accessToken, payload) {
+  return client.post('/roles', payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 8C - PermissionController's GET /roles/{id} (@PreAuthorize
+// HAS_ADMIN), same bearer-forwarding pattern as getClientApplication/
+// getUser above.
+export function getRole(accessToken, id) {
+  return client.get(`/roles/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 // Step 7C - existing POST /users (already usable per AdminUserController's
 // own Javadoc, same as every other endpoint this feature turned out to
 // already have). clientId is required as a query param, same as
@@ -136,4 +197,54 @@ export function createUser(accessToken, clientId, payload) {
     params: { clientId },
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+}
+
+// Step 9A - PermissionController's GET /groups and GET /groups/{id}/subgroups
+// (@PreAuthorize HAS_ADMIN), same bearer-forwarding pattern as
+// listRoles/getRole above. Both are plain unpaginated queries
+// (GroupQueryServiceImpl), so no page/size params to forward.
+export function listGroups(accessToken) {
+  return client.get('/groups', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function listSubgroups(accessToken, id) {
+  return client.get(`/groups/${encodeURIComponent(id)}/subgroups`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 9B - existing POST /groups (PermissionController#createSuperGroup),
+// same bearer-forwarding pattern as createRole above.
+export function createSuperGroup(accessToken, payload) {
+  return client.post('/groups', payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 9B - existing POST /groups/{parentGroupName}/subgroups
+// (PermissionController#createSubGroup), same bearer-forwarding pattern.
+export function createSubGroup(accessToken, parentGroupName, payload) {
+  return client.post(`/groups/${encodeURIComponent(parentGroupName)}/subgroups`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 9B - existing POST /groups/{groupName}/roles
+// (PermissionController#assignRoleToGroup).
+export function assignRoleToGroup(accessToken, groupName, payload) {
+  return client.post(`/groups/${encodeURIComponent(groupName)}/roles`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 9B - existing POST /groups/{parentGroupName}/subgroups/{subGroupName}/roles
+// (PermissionController#assignRoleToSubGroup).
+export function assignRoleToSubGroup(accessToken, parentGroupName, subGroupName, payload) {
+  return client.post(
+    `/groups/${encodeURIComponent(parentGroupName)}/subgroups/${encodeURIComponent(subGroupName)}/roles`,
+    payload,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
 }

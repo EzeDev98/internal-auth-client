@@ -1,12 +1,6 @@
 import '@patternfly/react-core/dist/styles/base.css';
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
-import Tabs from '../shared/components/Tabs';
-import AppBreadcrumb from '../shared/components/Breadcrumb';
-import Button from '../shared/components/Button';
-import Badge from '../shared/components/Badge';
-import Modal from '../shared/components/Modal';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
@@ -16,62 +10,12 @@ import ClientsListPage from '../features/clients/ClientsListPage';
 import ClientDetailPage from '../features/clients/ClientDetailPage';
 import UsersListPage from '../features/users/UsersListPage';
 import UserDetailPage from '../features/users/UserDetailPage';
+import RolesListPage from '../features/roles/RolesListPage';
+import RoleDetailPage from '../features/roles/RoleDetailPage';
+import GroupsTreePage from '../features/groups/GroupsTreePage';
+import SessionsListPage from '../features/sessions/SessionsListPage';
+import SettingsPage from '../features/settings/SettingsPage';
 import styles from './App.module.css';
-
-function ComingSoon({ label }) {
-  return <div className={styles.pageBody}>{label} - coming soon.</div>;
-}
-
-// Temporary Step 4 primitive demo (Breadcrumb + Tabs exercised together) -
-// gets replaced outright by Step 8's real Role details screen.
-function RolesDemo() {
-  return (
-    <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Roles', to: '/roles' }, { label: 'Role details' }]} />
-      <Tabs
-        ariaLabel="Role details (demo)"
-        tabs={[
-          { key: 'overview', title: 'Overview', content: 'Role overview goes here.' },
-          { key: 'permissions', title: 'Permissions', content: 'Permission groups go here.' },
-          { key: 'users', title: 'Users', content: 'Assigned users go here.' },
-        ]}
-      />
-    </div>
-  );
-}
-
-// Temporary Step 4 primitive demo (Button + Badge + Modal) - gets replaced
-// outright by Step 11's real Settings screen.
-function SettingsDemo() {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className={styles.pageBody}>
-      <p>
-        Signing keys <Badge>2 active</Badge>
-      </p>
-      <Button variant="primary" onClick={() => setIsOpen(true)}>
-        Rotate signing key
-      </Button>
-      <Modal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        title="Rotate signing key?"
-        footer={
-          <>
-            <Button variant="danger" onClick={() => setIsOpen(false)}>
-              Rotate
-            </Button>
-            <Button variant="link" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-          </>
-        }
-      >
-        This immediately invalidates tokens signed with the current key.
-      </Modal>
-    </div>
-  );
-}
 
 // Step 5A/5B - auth screens get their own layout (no Sidebar - an
 // unauthenticated visitor shouldn't see the internal nav). Real gating of
@@ -131,10 +75,11 @@ export default function App() {
             <Route path="/clients/:clientId" element={<ClientDetailPage />} />
             <Route path="/users" element={<UsersListPage />} />
             <Route path="/users/:username" element={<UserDetailPage />} />
-            <Route path="/roles" element={<RolesDemo />} />
-            <Route path="/groups" element={<ComingSoon label="Groups" />} />
-            <Route path="/sessions" element={<ComingSoon label="Sessions" />} />
-            <Route path="/settings" element={<SettingsDemo />} />
+            <Route path="/roles" element={<RolesListPage />} />
+            <Route path="/roles/:id" element={<RoleDetailPage />} />
+            <Route path="/groups" element={<GroupsTreePage />} />
+            <Route path="/sessions" element={<SessionsListPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

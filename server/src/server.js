@@ -9,6 +9,10 @@ import { connectRedis } from './lib/redisClient.js';
 import authRoutes from './routes/auth.js';
 import clientsRoutes from './routes/clients.js';
 import usersRoutes from './routes/users.js';
+import rolesRoutes from './routes/roles.js';
+import groupsRoutes from './routes/groups.js';
+import sessionsRoutes from './routes/sessions.js';
+import settingsRoutes from './routes/settings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +28,10 @@ async function main() {
   app.use('/bff/auth', authRoutes);
   app.use('/bff/clients', clientsRoutes);
   app.use('/bff/users', usersRoutes);
+  app.use('/bff/roles', rolesRoutes);
+  app.use('/bff/groups', groupsRoutes);
+  app.use('/bff/sessions', sessionsRoutes);
+  app.use('/bff/settings', settingsRoutes);
 
   app.get('/bff/health', (req, res) => res.json({ success: true, data: { status: 'ok' } }));
 

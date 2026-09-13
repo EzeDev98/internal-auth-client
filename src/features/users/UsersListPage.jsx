@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TextInput, FormSelect, FormSelectOption } from '@patternfly/react-core';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import DataTable from '../../shared/components/DataTable';
+import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import CreateUserModal from './CreateUserModal';
 import { listUsers } from './api';
@@ -53,7 +54,9 @@ export default function UsersListPage() {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data, isLoading, isError, error, refetch,
+  } = useQuery({
     queryKey: ['users', page, perPage, search, enabledFilter],
     queryFn: () => listUsers({
       page: page - 1,
@@ -105,23 +108,23 @@ export default function UsersListPage() {
         </FormSelect>
       </div>
 
-      {isError && <p className={styles.error}>{error.message}</p>}
-
-      <DataTable
-        ariaLabel="Users"
-        columns={COLUMNS}
-        rows={rows}
-        rowKey={(row) => row.id}
-        page={page}
-        perPage={perPage}
-        itemCount={itemCount}
-        onSetPage={(_event, newPage) => setPage(newPage)}
-        onPerPageSelect={(_event, newPerPage) => {
-          setPerPage(newPerPage);
-          setPage(1);
-        }}
-        emptyStateMessage={isLoading ? 'Loading...' : 'No users found.'}
-      />
+      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+        <DataTable
+          ariaLabel="Users"
+          columns={COLUMNS}
+          rows={rows}
+          rowKey={(row) => row.id}
+          page={page}
+          perPage={perPage}
+          itemCount={itemCount}
+          onSetPage={(_event, newPage) => setPage(newPage)}
+          onPerPageSelect={(_event, newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+          emptyStateMessage="No users found."
+        />
+      </QueryState>
 
       {isCreateOpen && (
         <CreateUserModal onClose={() => setIsCreateOpen(false)} onCreated={handleCreated} />
