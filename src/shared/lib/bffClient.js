@@ -41,4 +41,5 @@ async function request(path, { method = 'GET', body } = {}) {
 
 export const bffGet = (path) => request(path);
 export const bffPost = (path, body) => request(path, { method: 'POST', body });
+export const bffPatch = (path, body) => request(path, { method: 'PATCH', body });
 export const bffDelete = (path) => request(path, { method: 'DELETE' });

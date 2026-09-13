@@ -2,81 +2,24 @@ import '@patternfly/react-core/dist/styles/base.css';
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
-import DataTable from '../shared/components/DataTable';
 import Tabs from '../shared/components/Tabs';
 import AppBreadcrumb from '../shared/components/Breadcrumb';
 import Button from '../shared/components/Button';
 import Badge from '../shared/components/Badge';
 import Modal from '../shared/components/Modal';
-import ActionsMenu from '../shared/components/ActionsMenu';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../features/auth/ResetPasswordPage';
 import { useAuth } from '../shared/lib/authContext';
+import ClientsListPage from '../features/clients/ClientsListPage';
+import ClientDetailPage from '../features/clients/ClientDetailPage';
+import UsersListPage from '../features/users/UsersListPage';
+import UserDetailPage from '../features/users/UserDetailPage';
 import styles from './App.module.css';
 
 function ComingSoon({ label }) {
   return <div className={styles.pageBody}>{label} - coming soon.</div>;
-}
-
-// Temporary Step 4 primitive demo (Sidebar + DataTable exercised together
-// with fake rows) - gets replaced outright by Step 7's real Users feature.
-// Not wired to any API.
-const DEMO_ROWS = [
-  { id: 1, username: 'admin', email: 'admin@wm.example', enabled: true },
-  { id: 2, username: 'jane.doe', email: 'jane@wm.example', enabled: true },
-  { id: 3, username: 'legacy.bot', email: 'bot@wm.example', enabled: false },
-];
-const DEMO_COLUMNS = [
-  { key: 'username', label: 'Username', sortable: true },
-  { key: 'email', label: 'Email', sortable: true },
-  { key: 'enabled', label: 'Enabled', render: (row) => (row.enabled ? 'Yes' : 'No') },
-  {
-    key: 'actions',
-    label: '',
-    render: (row) => (
-      <ActionsMenu
-        ariaLabel={`Actions for ${row.username}`}
-        items={[
-          { key: 'edit', label: 'Edit', onClick: () => {} },
-          { key: 'delete', label: 'Delete', isDanger: true, onClick: () => {} },
-        ]}
-      />
-    ),
-  },
-];
-
-function UsersDemo() {
-  const [sortBy, setSortBy] = useState({ index: 0, direction: 'asc' });
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-
-  const sortedRows = [...DEMO_ROWS].sort((a, b) => {
-    const key = DEMO_COLUMNS[sortBy.index]?.key;
-    const dir = sortBy.direction === 'asc' ? 1 : -1;
-    return String(a[key]).localeCompare(String(b[key])) * dir;
-  });
-
-  return (
-    <div className={styles.pageBody}>
-      <DataTable
-        ariaLabel="Users (demo)"
-        columns={DEMO_COLUMNS}
-        rows={sortedRows}
-        sortBy={sortBy}
-        onSort={(index, direction) => setSortBy({ index, direction })}
-        page={page}
-        perPage={perPage}
-        itemCount={sortedRows.length}
-        onSetPage={(_event, newPage) => setPage(newPage)}
-        onPerPageSelect={(_event, newPerPage) => {
-          setPerPage(newPerPage);
-          setPage(1);
-        }}
-      />
-    </div>
-  );
 }
 
 // Temporary Step 4 primitive demo (Breadcrumb + Tabs exercised together) -
@@ -184,8 +127,10 @@ export default function App() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
-            <Route path="/clients" element={<ComingSoon label="Clients" />} />
-            <Route path="/users" element={<UsersDemo />} />
+            <Route path="/clients" element={<ClientsListPage />} />
+            <Route path="/clients/:clientId" element={<ClientDetailPage />} />
+            <Route path="/users" element={<UsersListPage />} />
+            <Route path="/users/:username" element={<UserDetailPage />} />
             <Route path="/roles" element={<RolesDemo />} />
             <Route path="/groups" element={<ComingSoon label="Groups" />} />
             <Route path="/sessions" element={<ComingSoon label="Sessions" />} />

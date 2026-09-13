@@ -1,0 +1,43 @@
+.pageBody {
+  padding: 24px;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  margin: 16px 0;
+}
+
+.readonlyGrid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  font-size: var(--text-sm);
+  margin-bottom: 24px;
+}
+
+.readonlyGrid dt {
+  font-weight: var(--weight-medium);
+  color: var(--sidebar-icon-inactive);
+}
+
+.readonlyGrid dd {
+  margin: 0;
+}
+
+.grantBadge {
+  margin-right: 6px;
+}
+
+.form {
+  max-width: 560px;
+}
+
+.fieldError {
+  color: var(--pf-t--global--text--color--status--danger--default);
+  font-size: var(--text-xs);
+  margin-top: 4px;
+}

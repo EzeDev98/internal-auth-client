@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { env } from './config/env.js';
 import { connectRedis } from './lib/redisClient.js';
 import authRoutes from './routes/auth.js';
+import clientsRoutes from './routes/clients.js';
+import usersRoutes from './routes/users.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,6 +22,8 @@ async function main() {
   app.use(cookieParser());
 
   app.use('/bff/auth', authRoutes);
+  app.use('/bff/clients', clientsRoutes);
+  app.use('/bff/users', usersRoutes);
 
   app.get('/bff/health', (req, res) => res.json({ success: true, data: { status: 'ok' } }));
 
