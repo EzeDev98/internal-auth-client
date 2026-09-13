@@ -1,0 +1,5 @@
+.button {
+  border-radius: var(--radius) !important;
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+}

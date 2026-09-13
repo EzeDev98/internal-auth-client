@@ -1,0 +1,11 @@
+.wrapper {
+  background: transparent;
+}
+
+.table {
+  font-size: var(--text-sm);
+}
+
+.pagination {
+  margin-top: 8px;
+}

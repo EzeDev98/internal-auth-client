@@ -1,0 +1,23 @@
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  min-height: 100vh;
+}
+
+.sidebar :global(.pf-v6-c-nav__link) {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--sidebar-text-inactive);
+  border-radius: var(--radius);
+}
+
+.sidebar :global(.pf-v6-c-nav__link:hover) {
+  color: var(--sidebar-text-active);
+}
+
+.sidebar :global(.pf-v6-c-nav__link.active) {
+  color: var(--sidebar-text-active);
+  background: var(--sidebar-item-active-bg);
+}

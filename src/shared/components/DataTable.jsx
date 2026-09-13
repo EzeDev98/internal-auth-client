@@ -1,0 +1,84 @@
+import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
+import { Pagination } from '@patternfly/react-core';
+import styles from './DataTable.module.css';
+
+// Step 4B - plain Keycloak-style table: sortable header row via PatternFly's
+// own Th `sort` prop, and a page-size dropdown + prev/next chevrons via
+// PatternFly's Pagination in isCompact mode (which suppresses the
+// first/last buttons and the numbered page input - see PaginationNavigation
+// - leaving exactly "dropdown + prev/next chevrons, no numbered pagination").
+// No Card wrapper - "no card chrome" per the plan.
+const DEFAULT_PER_PAGE_OPTIONS = [
+  { title: '10', value: 10 },
+  { title: '20', value: 20 },
+  { title: '50', value: 50 },
+];
+
+export default function DataTable({
+  columns,
+  rows,
+  rowKey = (row) => row.id,
+  sortBy,
+  onSort,
+  page,
+  perPage,
+  itemCount,
+  onSetPage,
+  onPerPageSelect,
+  perPageOptions = DEFAULT_PER_PAGE_OPTIONS,
+  ariaLabel = 'Data table',
+  emptyStateMessage = 'No results found.',
+}) {
+  const getSortParams = (columnIndex) => ({
+    sortBy,
+    onSort: (_event, index, direction) => onSort?.(index, direction),
+    columnIndex,
+  });
+
+  return (
+    <div className={styles.wrapper}>
+      <Table aria-label={ariaLabel} className={styles.table}>
+        <Thead>
+          <Tr>
+            {columns.map((column, index) => (
+              <Th key={column.key} sort={column.sortable ? getSortParams(index) : undefined}>
+                {column.label}
+              </Th>
+            ))}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {rows.length === 0 ? (
+            <Tr>
+              <Td colSpan={columns.length}>{emptyStateMessage}</Td>
+            </Tr>
+          ) : (
+            rows.map((row) => (
+              <Tr key={rowKey(row)}>
+                {columns.map((column) => (
+                  <Td key={column.key} dataLabel={column.label}>
+                    {column.render ? column.render(row) : row[column.key]}
+                  </Td>
+                ))}
+              </Tr>
+            ))
+          )}
+        </Tbody>
+      </Table>
+
+      {onSetPage && (
+        <Pagination
+          isCompact
+          variant="bottom"
+          page={page}
+          perPage={perPage}
+          itemCount={itemCount}
+          perPageOptions={perPageOptions}
+          onSetPage={onSetPage}
+          onPerPageSelect={onPerPageSelect}
+          className={styles.pagination}
+        />
+      )}
+    </div>
+  );
+}

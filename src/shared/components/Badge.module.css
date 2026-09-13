@@ -1,0 +1,4 @@
+.badge {
+  border-radius: var(--radius) !important;
+  font-family: var(--font-body);
+}

@@ -1,0 +1,9 @@
+.tabs :global(.pf-v6-c-tabs__link) {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+}
+
+.panel {
+  padding: 16px 0;
+}
