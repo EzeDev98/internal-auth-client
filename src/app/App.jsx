@@ -1,6 +1,6 @@
 import '@patternfly/react-core/dist/styles/base.css';
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
 import DataTable from '../shared/components/DataTable';
 import Tabs from '../shared/components/Tabs';
@@ -9,16 +9,20 @@ import Button from '../shared/components/Button';
 import Badge from '../shared/components/Badge';
 import Modal from '../shared/components/Modal';
 import ActionsMenu from '../shared/components/ActionsMenu';
+import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
+import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../features/auth/ResetPasswordPage';
+import { useAuth } from '../shared/lib/authContext';
 import styles from './App.module.css';
 
 function ComingSoon({ label }) {
   return <div className={styles.pageBody}>{label} - coming soon.</div>;
 }
 
-// Temporary Step 4 primitive demo (Sidebar + DataTable + ActionsMenu
-// exercised together with fake rows) - gets replaced outright by Step 7's
-// real Users feature. Not wired to any API.
+// Temporary Step 4 primitive demo (Sidebar + DataTable exercised together
+// with fake rows) - gets replaced outright by Step 7's real Users feature.
+// Not wired to any API.
 const DEMO_ROWS = [
   { id: 1, username: 'admin', email: 'admin@wm.example', enabled: true },
   { id: 2, username: 'jane.doe', email: 'jane@wm.example', enabled: true },
@@ -126,24 +130,70 @@ function SettingsDemo() {
   );
 }
 
+// Step 5A/5B - auth screens get their own layout (no Sidebar - an
+// unauthenticated visitor shouldn't see the internal nav). Real gating of
+// the app-shell routes is Step 5E, not yet built.
+function AuthLayout() {
+  return (
+    <div className={styles.authShell}>
+      <Outlet />
+    </div>
+  );
+}
+
+function AppShell() {
+  return (
+    <div className={styles.shell}>
+      <Sidebar />
+      <main className={styles.content}>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// Step 5E - route guarding. Asks the BFF (via useAuth's GET /bff/auth/me,
+// Step 4F) whether the httpOnly session cookie is still valid; there is
+// nothing client-side to check instead. While that's in flight, render
+// nothing rather than flashing AppShell for a moment - once it resolves,
+// an unauthenticated visitor is sent to Login instead of ever reaching the
+// nav/content underneath.
+function RequireAuth() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <div className={styles.shell}>
-        <Sidebar />
-        <main className={styles.content}>
-          <Routes>
-            <Route path="/register" element={<RegisterPage />} />
+      <Routes>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Route>
+        <Route element={<RequireAuth />}>
+          <Route element={<AppShell />}>
             <Route path="/clients" element={<ComingSoon label="Clients" />} />
             <Route path="/users" element={<UsersDemo />} />
             <Route path="/roles" element={<RolesDemo />} />
             <Route path="/groups" element={<ComingSoon label="Groups" />} />
             <Route path="/sessions" element={<ComingSoon label="Sessions" />} />
             <Route path="/settings" element={<SettingsDemo />} />
-            <Route path="*" element={<Navigate to="/register" replace />} />
-          </Routes>
-        </main>
-      </div>
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -1,0 +1,15 @@
+.card {
+  max-width: 480px;
+  margin: 64px auto 0;
+}
+
+.fieldError {
+  color: var(--pf-t--global--text--color--status--danger--default);
+  font-size: var(--text-xs);
+  margin-top: 4px;
+}
+
+.loginLink {
+  margin-top: 16px;
+  font-size: var(--text-sm);
+}

@@ -13,3 +13,8 @@
   font-family: var(--font-body);
   font-size: var(--text-md);
 }
+
+.authShell {
+  min-height: 100vh;
+  font-family: var(--font-body);
+}
