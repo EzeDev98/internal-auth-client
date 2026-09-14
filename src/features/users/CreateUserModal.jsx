@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Form, FormGroup, TextInput, FormSelect, FormSelectOption, Alert } from '@patternfly/react-core';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
+import PasswordInput from '../../shared/components/PasswordInput';
 import { listClients } from '../clients/api';
 import { createUser } from './api';
 import { createUserSchema } from './createUserSchema';
@@ -105,12 +106,12 @@ export default function CreateUserModal({ onClose, onCreated }) {
         </FormGroup>
 
         <FormGroup label="Password" isRequired fieldId="password">
-          <TextInput id="password" type="password" {...register('password')} validated={errors.password ? 'error' : 'default'} />
+          <PasswordInput id="password" {...register('password')} validated={errors.password ? 'error' : 'default'} />
           {errors.password && <div className={styles.fieldError}>{errors.password.message}</div>}
         </FormGroup>
 
         <FormGroup label="Confirm password" isRequired fieldId="confirmPassword">
-          <TextInput id="confirmPassword" type="password" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
+          <PasswordInput id="confirmPassword" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
           {errors.confirmPassword && <div className={styles.fieldError}>{errors.confirmPassword.message}</div>}
         </FormGroup>
       </Form>

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, Link } from 'react-router';
-import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSection } from '@patternfly/react-core';
+import { Form, FormGroup, ActionGroup, Alert, Card, CardBody, PageSection } from '@patternfly/react-core';
 import Button from '../../shared/components/Button';
+import PasswordInput from '../../shared/components/PasswordInput';
+import AuthHeading from '../../shared/components/AuthHeading';
 import { completePasswordReset } from './api';
 import { resetPasswordSchema } from './resetPasswordSchema';
 import styles from './ResetPasswordPage.module.css';
@@ -72,16 +74,18 @@ export default function ResetPasswordPage() {
     <PageSection>
       <Card className={styles.card}>
         <CardBody>
+          <AuthHeading title="Reset password" subtitle="Choose a new password for your account" />
+
           <Form onSubmit={handleSubmit(onSubmit)}>
             {serverError && <Alert variant="danger" title={serverError} />}
 
             <FormGroup label="New password" isRequired fieldId="newPassword">
-              <TextInput id="newPassword" type="password" {...register('newPassword')} validated={errors.newPassword ? 'error' : 'default'} />
+              <PasswordInput id="newPassword" {...register('newPassword')} validated={errors.newPassword ? 'error' : 'default'} />
               {errors.newPassword && <div className={styles.fieldError}>{errors.newPassword.message}</div>}
             </FormGroup>
 
             <FormGroup label="Confirm new password" isRequired fieldId="confirmPassword">
-              <TextInput id="confirmPassword" type="password" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
+              <PasswordInput id="confirmPassword" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
               {errors.confirmPassword && <div className={styles.fieldError}>{errors.confirmPassword.message}</div>}
             </FormGroup>
 

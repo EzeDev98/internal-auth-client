@@ -1,0 +1,19 @@
+.heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: var(--weight-semibold);
+  color: var(--sidebar-bg);
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 0;
+}

@@ -1,4 +1,5 @@
 import '@patternfly/react-core/dist/styles/base.css';
+import '../shared/patternfly-overrides.css';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
 import LoginPage from '../features/auth/LoginPage';

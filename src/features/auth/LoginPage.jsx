@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router';
 import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSection } from '@patternfly/react-core';
 import Button from '../../shared/components/Button';
+import PasswordInput from '../../shared/components/PasswordInput';
+import AuthHeading from '../../shared/components/AuthHeading';
 import { useAuth } from '../../shared/lib/authContext';
 import { credentialsSchema, otpSchema } from './loginSchema';
 import styles from './LoginPage.module.css';
@@ -56,6 +58,8 @@ export default function LoginPage() {
       <PageSection>
         <Card className={styles.card}>
           <CardBody>
+            <AuthHeading title="Verify your identity" subtitle="Enter the code sent to your phone" />
+
             <Form onSubmit={handleSubmit(onSubmitOtp)}>
               {serverError && <Alert variant="danger" title={serverError} />}
 
@@ -95,6 +99,8 @@ export default function LoginPage() {
     <PageSection>
       <Card className={styles.card}>
         <CardBody>
+          <AuthHeading title="Welcome back" subtitle="Sign in to the admin console" />
+
           <Form onSubmit={handleSubmit(onSubmitCredentials)}>
             {serverError && <Alert variant="danger" title={serverError} />}
 
@@ -104,27 +110,29 @@ export default function LoginPage() {
             </FormGroup>
 
             <FormGroup label="Password" isRequired fieldId="password">
-              <TextInput
+              <PasswordInput
                 id="password"
-                type="password"
                 {...register('password')}
                 validated={errors.password ? 'error' : 'default'}
               />
               {errors.password && <div className={styles.fieldError}>{errors.password.message}</div>}
             </FormGroup>
 
-            <ActionGroup>
-              <Button type="submit" isLoading={isSubmitting} variant="primary">
-                Log in
-              </Button>
-            </ActionGroup>
+            <div className={styles.loginActions}>
+              <div className={styles.forgotPasswordRow}>
+                <Link to="/forgot-password">Forgot password?</Link>
+              </div>
+
+              <ActionGroup>
+                <Button type="submit" isLoading={isSubmitting} variant="primary">
+                  Log in
+                </Button>
+              </ActionGroup>
+            </div>
           </Form>
 
           <p className={styles.registerLink}>
             No admin account yet? <Link to="/register">Register</Link>
-          </p>
-          <p className={styles.registerLink}>
-            <Link to="/forgot-password">Forgot password?</Link>
           </p>
         </CardBody>
       </Card>

@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSection } from '@patternfly/react-core';
 import Button from '../../shared/components/Button';
+import PasswordInput from '../../shared/components/PasswordInput';
+import AuthHeading from '../../shared/components/AuthHeading';
 import { registerSchema } from './registerSchema';
 import { registerAdmin } from './api';
 import styles from './RegisterPage.module.css';
@@ -52,6 +54,8 @@ export default function RegisterPage() {
     <PageSection>
       <Card className={styles.card}>
         <CardBody>
+          <AuthHeading title="Create admin account" subtitle="Set up a new operator account for the auth console" />
+
           <Form onSubmit={handleSubmit(onSubmit)}>
             {serverError && <Alert variant="danger" title={serverError} />}
 
@@ -71,12 +75,12 @@ export default function RegisterPage() {
             </FormGroup>
 
             <FormGroup label="Password" isRequired fieldId="password">
-              <TextInput id="password" type="password" {...register('password')} validated={errors.password ? 'error' : 'default'} />
+              <PasswordInput id="password" {...register('password')} validated={errors.password ? 'error' : 'default'} />
               {errors.password && <div className={styles.fieldError}>{errors.password.message}</div>}
             </FormGroup>
 
             <FormGroup label="Confirm password" isRequired fieldId="confirmPassword">
-              <TextInput id="confirmPassword" type="password" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
+              <PasswordInput id="confirmPassword" {...register('confirmPassword')} validated={errors.confirmPassword ? 'error' : 'default'} />
               {errors.confirmPassword && <div className={styles.fieldError}>{errors.confirmPassword.message}</div>}
             </FormGroup>
 

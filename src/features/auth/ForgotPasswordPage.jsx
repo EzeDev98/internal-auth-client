@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router';
 import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSection } from '@patternfly/react-core';
 import Button from '../../shared/components/Button';
+import AuthHeading from '../../shared/components/AuthHeading';
 import { requestPasswordReset, verifyPasswordResetOtp } from './api';
 import { phoneSchema, otpOnlySchema } from './forgotPasswordSchema';
 import styles from './ForgotPasswordPage.module.css';
@@ -54,6 +55,7 @@ export default function ForgotPasswordPage() {
       <PageSection>
         <Card className={styles.card}>
           <CardBody>
+            <AuthHeading title="Enter verification code" />
             <p className={styles.intro}>
               If <strong>{phoneNumber}</strong> is registered, a verification code was sent to it.
             </p>
@@ -87,6 +89,8 @@ export default function ForgotPasswordPage() {
     <PageSection>
       <Card className={styles.card}>
         <CardBody>
+          <AuthHeading title="Forgot password" subtitle="We'll send a verification code to your phone" />
+
           <Form onSubmit={handleSubmit(onSubmitPhone)}>
             {serverError && <Alert variant="danger" title={serverError} />}
 

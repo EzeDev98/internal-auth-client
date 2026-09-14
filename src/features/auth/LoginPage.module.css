@@ -1,6 +1,6 @@
 .card {
+  width: 100%;
   max-width: 420px;
-  margin: 64px auto 0;
 }
 
 .fieldError {
@@ -11,5 +11,21 @@
 
 .registerLink {
   margin-top: 16px;
+  font-size: var(--text-sm);
+}
+
+.loginActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loginActions :global(.pf-v6-c-form__group.pf-m-action) {
+  margin-block-start: 0;
+}
+
+.forgotPasswordRow {
+  display: flex;
+  justify-content: flex-end;
   font-size: var(--text-sm);
 }
