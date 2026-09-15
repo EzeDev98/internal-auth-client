@@ -6,8 +6,9 @@
 
 .toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
   margin: 16px 0;
 }
 
@@ -18,19 +19,62 @@
   margin: 0;
 }
 
+.description {
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 4px 0 0;
+}
+
 .filters {
   display: flex;
+  align-items: center;
   gap: 12px;
   margin-bottom: 16px;
 }
 
-.searchInput {
-  max-width: 360px;
+.searchBar {
   flex: 1;
 }
 
-.statusSelect {
-  max-width: 200px;
+/* Matches SearchBar.module.css's .searchGroup box exactly (height, border,
+   radius, background) so the status filter and the search field read as
+   one consistent row - just without the icon/arrow slots, since this is a
+   single MenuToggle rather than a form with a submit button. */
+.statusToggle {
+  --pf-v6-c-menu-toggle--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--hover--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--expanded--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  min-width: 200px;
+  height: 36px !important;
+  border-radius: var(--radius) !important;
+  background: var(--pf-t--global--background--color--primary--default, #fff) !important;
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 14px);
+  box-shadow: none !important;
+}
+
+.statusToggle::after {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.checkPlaceholder {
+  display: inline-block;
+  width: 16px;
+}
+
+.statusEnabled {
+  background: transparent !important;
+  color: var(--pf-t--global--text--color--status--success--default, #3e8635) !important;
+  padding: 0 !important;
+  font-weight: var(--weight-medium);
+}
+
+.statusDisabled {
+  background: transparent !important;
+  color: var(--pf-t--global--text--color--status--danger--default) !important;
+  padding: 0 !important;
+  font-weight: var(--weight-medium);
 }
 
 .error {

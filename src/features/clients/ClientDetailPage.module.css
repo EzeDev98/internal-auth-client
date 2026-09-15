@@ -21,7 +21,7 @@
 .meta {
   font-size: var(--text-sm);
   color: var(--sidebar-icon-inactive);
-  margin: 0 0 16px;
+  margin: 0 0 24px;
 }
 
 .enabledSwitch {
@@ -33,40 +33,53 @@
   font-family: var(--font-heading);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
-  margin: 24px 0 12px;
+  margin: 24px 0 4px;
 }
 
 .subheading:first-child {
   margin-top: 0;
 }
 
-.readonlyGrid {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 8px 16px;
-  font-size: var(--text-sm);
-  margin-bottom: 8px;
-}
-
-.readonlyGrid dt {
-  font-weight: var(--weight-medium);
-  color: var(--sidebar-icon-inactive);
-}
-
-.readonlyGrid dd {
-  margin: 0;
-}
-
-.grantBadge {
-  margin-right: 6px;
-}
-
-.form {
-  max-width: 560px;
-}
-
-.alert {
+.serverError {
   margin-bottom: 16px;
+  max-width: 760px;
+}
+
+/* Same Keycloak-reference field look as CreateClientPage.module.css's
+   .stepBody: square corners instead of this app's rounded default, and a
+   thinner top/left/right border with the bottom border left at
+   PatternFly's own default width/color. Scoped to this page's form only. */
+.formBody {
+  max-width: 760px;
+  --pf-t--global--border--radius--control--form-element: 0;
+}
+
+.formBody :global(.pf-v6-c-form-control) {
+  --pf-t--global--spacer--control--vertical--default: 0.4rem;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.08),
+    inset 1px 0 0 rgba(0, 0, 0, 0.08),
+    inset -1px 0 0 rgba(0, 0, 0, 0.08);
+}
+
+.formBody :global(.pf-v6-c-form-control)::before {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.formBody :global(.pf-v6-c-form-control):hover {
+  --pf-v6-c-form-control--after--BorderWidth: 0;
+  --pf-v6-c-form-control--after--BorderColor: transparent;
+}
+
+.formBody :global(.pf-v6-c-form-control):focus-within {
+  box-shadow: none;
+}
+
+.formBody :global(.pf-v6-c-form-control):focus-within::before {
+  border-top: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
+  border-left: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
+  border-right: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
 }
 
 .fieldError {
@@ -75,11 +88,31 @@
   margin-top: 4px;
 }
 
-.typeBadge {
-  background: transparent !important;
-  color: inherit !important;
-  padding: 0 !important;
-  font-weight: var(--weight-medium);
+.grantTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 12px 32px;
+}
+
+.grantTypeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.helpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+  color: var(--sidebar-icon-inactive);
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+  flex-shrink: 0;
 }
 
 .actions {

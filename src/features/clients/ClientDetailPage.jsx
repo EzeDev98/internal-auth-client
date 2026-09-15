@@ -3,15 +3,38 @@ import { useParams } from 'react-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Form, FormGroup, TextInput, TextArea, Switch, Alert } from '@patternfly/react-core';
+import {
+  Form, FormGroup, TextInput, TextArea, Checkbox, Switch, Alert, Tooltip,
+} from '@patternfly/react-core';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import QueryState from '../../shared/components/QueryState';
-import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import Tabs from '../../shared/components/Tabs';
 import { getClient, updateClient } from './api';
 import { updateClientSchema } from './updateClientSchema';
 import styles from './ClientDetailPage.module.css';
+
+// Same fixed list CreateClientPage shows in its "Authentication flow" grid
+// (the only three grantTypes the backend accepts). Reused here read-only,
+// checked according to what this client actually has - grantTypes isn't
+// editable post-creation (UpdateClientApplicationRequest's own Javadoc),
+// so these render as disabled checkboxes rather than an editable field.
+const GRANT_TYPE_OPTIONS = [
+  { value: 'authorization_code', label: 'Authorization code', help: 'Lets this client obtain tokens via the OAuth 2.0 authorization code flow.' },
+  { value: 'refresh_token', label: 'Refresh token', help: 'Lets this client request a refresh token alongside its access token.' },
+  { value: 'client_credentials', label: 'Client credentials', help: 'Lets this client authenticate and obtain tokens on its own behalf, without a user.' },
+];
+
+// Same small "?" trigger as CreateClientPage's own HelpTooltip - kept as
+// its own local copy here rather than a shared import, same as that file
+// does.
+function HelpTooltip({ content }) {
+  return (
+    <Tooltip content={content}>
+      <span className={styles.helpIcon} tabIndex={0}>?</span>
+    </Tooltip>
+  );
+}
 
 function joinList(values) {
   return (values ?? []).join('\n');
@@ -29,15 +52,17 @@ function formatDate(value) {
 }
 
 // Step 6C - detail/edit, backed by Step 2B's GET/PATCH
-// /client-applications/{clientId}. Laid out after Keycloak's client
-// "Settings" tab (General settings / Capability config / Access settings
-// groupings, Enabled switch beside the title, Save + Revert at the
-// bottom). clientId, type and grantTypes aren't editable here -
-// UpdateClientApplicationRequest's own Javadoc says so directly - so
-// they're shown read-only instead of as inputs. Keycloak's Roles, Client
-// scopes, Sessions and Advanced tabs have no backing service on our side
-// (no per-client roles/scopes/sessions/advanced-config endpoint), so only
-// Settings is rendered as a tab - nothing stubbed in for the rest.
+// /client-applications/{clientId}. Field design deliberately reuses
+// CreateClientPage's own look (isHorizontal Form, the same flat/square
+// form-control styling, the same HelpTooltip and grant-type grid) rather
+// than a second one-off style, since that page is already the Keycloak
+// reference for this app. clientId, type and grantTypes aren't editable
+// here - UpdateClientApplicationRequest's own Javadoc says so directly -
+// so they render disabled instead of as live inputs. Keycloak's Roles,
+// Client scopes, Sessions and Advanced tabs have no backing service on
+// our side (no per-client roles/scopes/sessions/advanced-config
+// endpoint), so only Settings is rendered as a tab - nothing stubbed in
+// for the rest.
 export default function ClientDetailPage() {
   const { clientId } = useParams();
   const queryClient = useQueryClient();
@@ -100,10 +125,12 @@ export default function ClientDetailPage() {
     );
   }
 
+  const grantTypes = client.grantTypes ?? [];
+
   const settingsTab = (
-    <Form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-      {serverError && <Alert variant="danger" title={serverError} className={styles.alert} />}
-      {saved && <Alert variant="success" title="Client application updated" className={styles.alert} />}
+    <Form onSubmit={handleSubmit(onSubmit)} className={styles.formBody} isHorizontal>
+      {serverError && <Alert variant="danger" isInline title={serverError} className={styles.serverError} />}
+      {saved && <Alert variant="success" isInline title="Client application updated" className={styles.serverError} />}
 
       <h2 className={styles.subheading}>General settings</h2>
 
@@ -122,26 +149,45 @@ export default function ClientDetailPage() {
 
       <h2 className={styles.subheading}>Capability config</h2>
 
-      <dl className={styles.readonlyGrid}>
-        <dt>Client type</dt>
-        <dd><Badge className={styles.typeBadge}>{client.type}</Badge></dd>
-        <dt>Grant types</dt>
-        <dd>
-          {client.grantTypes?.length
-            ? client.grantTypes.map((grantType) => (
-                <Badge key={grantType} className={styles.grantBadge}>{grantType}</Badge>
-              ))
-            : '—'}
-        </dd>
-      </dl>
+      <FormGroup
+        label="Client authentication"
+        fieldId="clientAuthentication"
+        labelHelp={<HelpTooltip content="Whether this client has a secret (CONFIDENTIAL) or is public (PUBLIC). Set at creation, not editable here." />}
+      >
+        <Switch
+          id="clientAuthentication"
+          label="On"
+          labelOff="Off"
+          isChecked={client.type === 'CONFIDENTIAL'}
+          isDisabled
+        />
+      </FormGroup>
+
+      <FormGroup
+        label="Authentication flow"
+        fieldId="grantTypes"
+        labelHelp={<HelpTooltip content="Set at creation. Not editable here." />}
+      >
+        <div className={styles.grantTypeGrid}>
+          {GRANT_TYPE_OPTIONS.map((option) => (
+            <div key={option.value} className={styles.grantTypeItem}>
+              <Checkbox
+                id={`grantType-${option.value}`}
+                label={option.label}
+                isChecked={grantTypes.includes(option.value)}
+                isDisabled
+              />
+              <HelpTooltip content={option.help} />
+            </div>
+          ))}
+        </div>
+      </FormGroup>
 
       <h2 className={styles.subheading}>Access settings</h2>
 
       <FormGroup label="Redirect URIs" fieldId="redirectUris">
         <TextArea id="redirectUris" {...register('redirectUris')} placeholder="One per line" />
       </FormGroup>
-
-      <h2 className={styles.subheading}>Scopes</h2>
 
       <FormGroup label="Scopes" fieldId="scopes">
         <TextArea id="scopes" {...register('scopes')} placeholder="One per line, or comma-separated" />

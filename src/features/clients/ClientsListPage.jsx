@@ -5,6 +5,7 @@ import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
+import SearchBar from '../../shared/components/SearchBar';
 import { listClients } from './api';
 import styles from './ClientsListPage.module.css';
 
@@ -57,9 +58,8 @@ export default function ClientsListPage() {
     );
   }, [rows, search]);
 
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    setSearch(searchInput.trim());
+  const handleSearchSubmit = (value) => {
+    setSearch(value.trim());
   };
 
   return (
@@ -69,28 +69,13 @@ export default function ClientsListPage() {
       </div>
 
       <div className={styles.actionsRow}>
-        <form className={styles.searchGroup} role="search" onSubmit={handleSearchSubmit}>
-          <span className={styles.searchIcon} aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M11 11L14.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            className={styles.searchField}
-            placeholder="Search for client"
-            aria-label="Search for client"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-          />
-          <button type="submit" className={styles.searchSubmit} aria-label="Submit search">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M9 4L13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </form>
+        <SearchBar
+          value={searchInput}
+          onChange={setSearchInput}
+          onSubmit={handleSearchSubmit}
+          placeholder="Search for client"
+          ariaLabel="Search for client"
+        />
 
         <Button variant="primary" onClick={() => navigate('/clients/create')}>
           Create client

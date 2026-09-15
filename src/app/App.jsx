@@ -11,6 +11,7 @@ import ClientsListPage from '../features/clients/ClientsListPage';
 import CreateClientPage from '../features/clients/CreateClientPage';
 import ClientDetailPage from '../features/clients/ClientDetailPage';
 import UsersListPage from '../features/users/UsersListPage';
+import CreateUserPage from '../features/users/CreateUserPage';
 import UserDetailPage from '../features/users/UserDetailPage';
 import RolesListPage from '../features/roles/RolesListPage';
 import RoleDetailPage from '../features/roles/RoleDetailPage';
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="/clients/create" element={<CreateClientPage />} />
             <Route path="/clients/:clientId" element={<ClientDetailPage />} />
             <Route path="/users" element={<UsersListPage />} />
+            <Route path="/users/create" element={<CreateUserPage />} />
             <Route path="/users/:username" element={<UserDetailPage />} />
             <Route path="/roles" element={<RolesListPage />} />
             <Route path="/roles/:id" element={<RoleDetailPage />} />

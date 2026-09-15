@@ -2,7 +2,8 @@
   width: 240px;
   flex-shrink: 0;
   background: var(--sidebar-bg);
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: hidden;
   display: flex;
   flex-direction: column;
 }
