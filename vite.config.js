@@ -11,7 +11,7 @@ export default defineConfig({
     // satisfy install criteria; this app is strictly online-use.
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon-32.png', 'favicon-64.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'WM Internal Auth Admin Console',
         short_name: 'Auth Admin',

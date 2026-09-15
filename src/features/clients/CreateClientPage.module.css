@@ -1,0 +1,184 @@
+.pageBody {
+  padding: 24px;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  margin: 16px 0 4px;
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 0 0 24px;
+}
+
+.serverError {
+  margin-bottom: 16px;
+}
+
+.wizard {
+  min-height: 520px;
+  /* Keycloak's own form fields are square-cornered, unlike this app's
+     rounded default (--pf-t--global--border--radius--small, read by
+     FormControl/Button/MenuToggle/ClipboardCopy alike). Scoped to the
+     wizard via custom-property cascade rather than touching the token at
+     :root, so nothing outside Create client changes. */
+  --pf-t--global--border--radius--control--form-element: 0;
+  /* Grows just the 1/2/3 step circle (PatternFly ties its width/height to
+     the same --before--Width/Height pair used for both the numbered badge
+     and the current-step ring) so the digit doesn't look cramped inside
+     it - font-size is untouched, only the circle itself grows. */
+  --pf-v6-c-wizard__nav-link--before--Width: 2rem;
+  --pf-v6-c-wizard__nav-link--before--Height: 2rem;
+}
+
+/* Keycloak's Create client has no outer box and no rule above the footer
+   buttons - just the single vertical divider between the step nav and the
+   form (that divider is PatternFly's own default nav border-inline-end,
+   left untouched below). Drop the outer wrap's border, the nav's bottom
+   border, and the footer's top border so only that one divider remains. */
+.wizard :global(.pf-v6-c-wizard__outer-wrap) {
+  border: none;
+  border-block-start: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+}
+
+.wizard :global(.pf-v6-c-wizard__nav) {
+  border-block-end: none;
+}
+
+.wizard :global(.pf-v6-c-wizard__footer) {
+  border-block-start: none;
+}
+
+/* Removes the hover/focus highlight PatternFly puts on the 1/2/3 step nav
+   items (background tint + thicker step-circle border) - re-asserts the
+   same custom properties the base/.pf-m-current rules already set, at
+   higher specificity, so :hover/:focus/:focus-visible render identically
+   to the resting state. PatternFly's own hover rule uses :where(), which
+   carries zero specificity by design (same reasoning as the global link
+   underline removal in patternfly-overrides.css), so a plain selector here
+   overrides it outright with no !important needed. */
+.wizard :global(.pf-v6-c-wizard__nav-link.pf-m-current) {
+  --pf-v6-c-wizard__nav-link-main--BackgroundColor: transparent;
+}
+
+.wizard :global(.pf-v6-c-wizard__nav-link):hover,
+.wizard :global(.pf-v6-c-wizard__nav-link):focus,
+.wizard :global(.pf-v6-c-wizard__nav-link):focus-visible {
+  --pf-v6-c-wizard__nav-link--Color: var(--pf-t--global--text--color--subtle);
+  --pf-v6-c-wizard__nav-link-main--BackgroundColor: var(--pf-t--global--background--color--action--plain--default);
+  --pf-v6-c-wizard__nav-link-main--BorderWidth: var(--pf-t--global--border--width--action--plain--default);
+  outline: none;
+}
+
+.wizard :global(.pf-v6-c-wizard__nav-link.pf-m-current):hover,
+.wizard :global(.pf-v6-c-wizard__nav-link.pf-m-current):focus,
+.wizard :global(.pf-v6-c-wizard__nav-link.pf-m-current):focus-visible {
+  --pf-v6-c-wizard__nav-link--Color: var(--pf-t--global--text--color--regular);
+  --pf-v6-c-wizard__nav-link-main--BackgroundColor: transparent;
+  --pf-v6-c-wizard__nav-link-main--BorderWidth: var(--pf-t--global--border--width--action--plain--default);
+  outline: none;
+}
+
+.stepBody {
+  max-width: 760px;
+}
+
+/* Shrinks the input/textarea height a little and thins the border on the
+   top and both sides, while leaving the bottom border exactly as it was
+   (PatternFly's own default width/color) - scoped to this wizard's fields
+   only, not every form-control in the app. */
+.stepBody :global(.pf-v6-c-form-control) {
+  --pf-t--global--spacer--control--vertical--default: 0.4rem;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.08),
+    inset 1px 0 0 rgba(0, 0, 0, 0.08),
+    inset -1px 0 0 rgba(0, 0, 0, 0.08);
+}
+
+/* PatternFly draws the visible input border on a ::before pseudo-element
+   (content: "", inset: 0, border: var(--pf-v6-c-form-control--before--*)) -
+   not as a real `border` on .pf-v6-c-form-control itself, which is why
+   every earlier attempt on the parent element had no effect no matter the
+   specificity or !important. Removing the top/left/right sides here, on
+   the actual pseudo-element, leaves the bottom side's border-color/width
+   exactly as PatternFly set it. */
+.stepBody :global(.pf-v6-c-form-control)::before {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+/* Kill PatternFly's own hover highlight (the ::after pseudo-element,
+   colored via --hover--after--BorderColor/Width) so hovering a field looks
+   identical to resting - no blue, no change at all. */
+.stepBody :global(.pf-v6-c-form-control):hover {
+  --pf-v6-c-form-control--after--BorderWidth: 0;
+  --pf-v6-c-form-control--after--BorderColor: transparent;
+}
+
+/* On focus, drop the soft shadow and put back a full border on all four
+   sides - using the same width/style/color PatternFly's own ::before
+   already carries (var(--pf-v6-c-form-control--before--*)), so it's the
+   plain neutral border color, never blue. */
+.stepBody :global(.pf-v6-c-form-control):focus-within {
+  box-shadow: none;
+}
+
+.stepBody :global(.pf-v6-c-form-control):focus-within::before {
+  border-top: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
+  border-left: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
+  border-right: var(--pf-v6-c-form-control--before--BorderWidth) var(--pf-v6-c-form-control--before--BorderStyle) var(--pf-v6-c-form-control--before--BorderColor);
+}
+
+.stepAlert {
+  margin-bottom: 16px;
+  max-width: 520px;
+}
+
+.fieldError {
+  color: var(--pf-t--global--text--color--status--danger--default);
+  font-size: var(--text-xs);
+  margin-top: 4px;
+}
+
+.grantTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 12px 32px;
+}
+
+.grantTypeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.helpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+  color: var(--sidebar-icon-inactive);
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.secretWarning {
+  margin-bottom: 16px;
+}
+
+.secretLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  margin-bottom: 4px;
+}

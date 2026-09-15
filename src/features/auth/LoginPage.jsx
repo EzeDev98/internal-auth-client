@@ -30,7 +30,7 @@ export default function LoginPage() {
       if (result.mfaRequired) {
         setMfaRequired(true);
       } else {
-        navigate('/clients', { replace: true });
+        navigate('/', { replace: true });
       }
     } catch (err) {
       setServerError(err.message);
@@ -41,7 +41,7 @@ export default function LoginPage() {
     setServerError(null);
     try {
       await verifyOtp(values);
-      navigate('/clients', { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       setServerError(err.message);
     }

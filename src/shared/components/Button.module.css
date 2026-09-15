@@ -2,4 +2,6 @@
   border-radius: var(--radius) !important;
   font-family: var(--font-body);
   font-weight: var(--weight-medium);
+  padding-block: 6px !important;
+  padding-inline: 12px !important;
 }

@@ -7,6 +7,26 @@
   flex-direction: column;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+}
+
+.brandText {
+  color: var(--sidebar-text-active);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+}
+
 .logoutButton {
   margin: 16px;
   margin-top: auto;
@@ -16,6 +36,7 @@
 
 .sidebar :global(.pf-v6-c-nav__list) {
   row-gap: 0;
+  padding-top: 0;
 }
 
 .sidebar :global(.pf-v6-c-nav__link) {
@@ -35,4 +56,12 @@
 .sidebar :global(.pf-v6-c-nav__link.active) {
   color: var(--sidebar-text-active);
   background: var(--sidebar-item-active-bg);
+}
+
+.sidebar :global(.pf-v6-c-nav) {
+  padding-top: 0 !important;
+}
+
+.sidebar :global(.pf-v6-c-nav__list) {
+  padding-top: 0 !important;
 }

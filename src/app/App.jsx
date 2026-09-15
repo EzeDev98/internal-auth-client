@@ -8,12 +8,14 @@ import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../features/auth/ResetPasswordPage';
 import { useAuth } from '../shared/lib/authContext';
 import ClientsListPage from '../features/clients/ClientsListPage';
+import CreateClientPage from '../features/clients/CreateClientPage';
 import ClientDetailPage from '../features/clients/ClientDetailPage';
 import UsersListPage from '../features/users/UsersListPage';
 import UserDetailPage from '../features/users/UserDetailPage';
 import RolesListPage from '../features/roles/RolesListPage';
 import RoleDetailPage from '../features/roles/RoleDetailPage';
 import GroupsTreePage from '../features/groups/GroupsTreePage';
+import WelcomePage from '../features/home/WelcomePage';
 import SessionsListPage from '../features/sessions/SessionsListPage';
 import SettingsPage from '../features/settings/SettingsPage';
 import styles from './App.module.css';
@@ -72,7 +74,9 @@ export default function App() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
+            <Route path="/" element={<WelcomePage />} />
             <Route path="/clients" element={<ClientsListPage />} />
+            <Route path="/clients/create" element={<CreateClientPage />} />
             <Route path="/clients/:clientId" element={<ClientDetailPage />} />
             <Route path="/users" element={<UsersListPage />} />
             <Route path="/users/:username" element={<UserDetailPage />} />

@@ -2,6 +2,7 @@ import { Nav, NavList, NavItem } from '@patternfly/react-core';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import Button from './Button';
 import { useAuth } from '../lib/authContext';
+import logo from '../../assets/sidebar-logo-white.png';
 import styles from './Sidebar.module.css';
 
 // Step 4A - the six confirmed nav items (Step 1 decisions), styled per
@@ -38,6 +39,10 @@ export default function Sidebar() {
 
   return (
     <aside className={styles.sidebar}>
+      <div className={styles.brand}>
+        <img src={logo} alt="" className={styles.logo} />
+        <span className={styles.brandText}>Internal Auth</span>
+      </div>
       <Nav aria-label="Primary navigation" theme="dark">
         <NavList>
           {NAV_ITEMS.map(({ to, label }) => {

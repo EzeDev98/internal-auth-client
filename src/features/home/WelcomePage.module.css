@@ -1,0 +1,30 @@
+.welcome {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 24px;
+  font-family: var(--font-body);
+}
+
+.logo {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: var(--weight-semibold);
+  margin: 0 0 12px;
+}
+
+.subtitle {
+  font-size: var(--text-md);
+  color: var(--sidebar-icon-inactive);
+  max-width: 480px;
+  margin: 0;
+}
