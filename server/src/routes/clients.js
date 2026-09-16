@@ -4,6 +4,7 @@ import {
   createClientApplication,
   getClientApplication,
   updateClientApplication,
+  rotateClientSecret,
 } from '../lib/authServerClient.js';
 import { requireSession } from '../middleware/requireSession.js';
 import { verifyCsrf } from '../middleware/csrf.js';
@@ -48,6 +49,19 @@ router.get('/:clientId', requireSession, async (req, res) => {
 
 router.patch('/:clientId', requireSession, verifyCsrf, async (req, res) => {
   const upstream = await updateClientApplication(req.session.accessToken, req.params.clientId, req.body);
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+// Regenerates the client secret shown in the Settings tab's Client secret
+// field. verifyCsrf applies since this mutates state (the old secret stops
+// working immediately).
+router.post('/:clientId/rotate-secret', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await rotateClientSecret(req.session.accessToken, req.params.clientId);
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {

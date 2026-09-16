@@ -18,8 +18,12 @@ export const clientSummarySchema = z
 
 export const pagedClientsSchema = pagedSchema(clientSummarySchema);
 
-// Step 12A - mirrors ClientApplicationDetailResponse (Step 2B). Never
-// includes the secret/hash server-side, so nothing here does either.
+// Step 12A - mirrors ClientApplicationDetailResponse (Step 2B).
+// clientSecret is the decrypted, viewable secret for a CONFIDENTIAL
+// client that was created or regenerated after the server started
+// storing it reversibly - null for PUBLIC clients and for any older
+// CONFIDENTIAL client that predates that (those still need a regenerate
+// to get a viewable secret).
 export const clientDetailSchema = z
   .object({
     id: z.number(),
@@ -33,5 +37,6 @@ export const clientDetailSchema = z
     enabled: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string().nullable(),
+    clientSecret: z.string().nullable().optional(),
   })
   .passthrough();

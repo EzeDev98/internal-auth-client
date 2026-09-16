@@ -5,12 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Form, FormGroup, TextInput, TextArea, Checkbox, Switch, Alert, Tooltip,
+  InputGroup, InputGroupItem,
 } from '@patternfly/react-core';
+import { EyeIcon, EyeSlashIcon, CopyIcon } from '@patternfly/react-icons';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Tabs from '../../shared/components/Tabs';
-import { getClient, updateClient } from './api';
+import Modal from '../../shared/components/Modal';
+import { getClient, updateClient, rotateSecret } from './api';
 import { updateClientSchema } from './updateClientSchema';
 import styles from './ClientDetailPage.module.css';
 
@@ -33,6 +36,77 @@ function HelpTooltip({ content }) {
     <Tooltip content={content}>
       <span className={styles.helpIcon} tabIndex={0}>?</span>
     </Tooltip>
+  );
+}
+
+// Client secret field - masked like a password field by default, with an
+// eye toggle to reveal it and a copy button, matching Keycloak's own
+// Credentials tab look. value is the decrypted secret from the client
+// detail response (server-side clientSecretEncrypted) whenever one
+// exists - persistent across reloads, same as real Keycloak. Only stays
+// empty (eye/copy disabled) for a CONFIDENTIAL client that predates this
+// feature and hasn't been regenerated yet.
+function SecretField({ value, onRegenerate }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
+    } catch {
+      // Clipboard API unavailable/denied - nothing else to fall back to here.
+    }
+  };
+
+  return (
+    <InputGroup>
+      <InputGroupItem isFill>
+        <TextInput
+          id="clientSecret"
+          type={isVisible ? 'text' : 'password'}
+          value={value ?? ''}
+          placeholder={value ? undefined : 'Regenerate to view a secret'}
+          readOnlyVariant="default"
+          aria-label="Client secret"
+        />
+      </InputGroupItem>
+      <InputGroupItem>
+        <Button
+          type="button"
+          variant="control"
+          isDisabled={!value}
+          onClick={() => setIsVisible((current) => !current)}
+          aria-label={isVisible ? 'Hide client secret' : 'Show client secret'}
+        >
+          {isVisible ? <EyeSlashIcon /> : <EyeIcon />}
+        </Button>
+      </InputGroupItem>
+      <InputGroupItem>
+        <Tooltip content={isCopied ? 'Copied' : 'Copy'}>
+          <Button
+            type="button"
+            variant="control"
+            isDisabled={!value}
+            onClick={handleCopy}
+            aria-label="Copy client secret"
+          >
+            <CopyIcon />
+          </Button>
+        </Tooltip>
+      </InputGroupItem>
+      <InputGroupItem>
+        <Button
+          type="button"
+          variant="control"
+          onClick={onRegenerate}
+        >
+          Regenerate secret
+        </Button>
+      </InputGroupItem>
+    </InputGroup>
   );
 }
 
@@ -76,6 +150,10 @@ export default function ClientDetailPage() {
     queryFn: () => getClient(clientId),
   });
 
+  const [isRotateConfirmOpen, setIsRotateConfirmOpen] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotateError, setRotateError] = useState(null);
+
   const {
     register, handleSubmit, control, reset, formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(updateClientSchema) });
@@ -114,6 +192,33 @@ export default function ClientDetailPage() {
       setSaved(true);
     } catch (err) {
       setServerError(err.message);
+    }
+  };
+
+  const closeRotateConfirm = () => {
+    if (isRotating) return;
+    setIsRotateConfirmOpen(false);
+    setRotateError(null);
+  };
+
+  const confirmRotateSecret = async () => {
+    setRotateError(null);
+    setIsRotating(true);
+    try {
+      const result = await rotateSecret(clientId);
+      // The rotate response carries the plaintext secret over the wire
+      // this one time - drop it straight into the cached client so the
+      // field updates immediately instead of waiting on a refetch. From
+      // here on, a fresh GET/page load returns the same value too (the
+      // server now stores it reversibly - see clientSecretEncrypted).
+      queryClient.setQueryData(['clients', clientId], (current) => (
+        current ? { ...current, clientSecret: result.clientSecret } : current
+      ));
+      setIsRotateConfirmOpen(false);
+    } catch (err) {
+      setRotateError(err.message);
+    } finally {
+      setIsRotating(false);
     }
   };
 
@@ -162,6 +267,16 @@ export default function ClientDetailPage() {
           isDisabled
         />
       </FormGroup>
+
+      {client.type === 'CONFIDENTIAL' && (
+        <FormGroup
+          label="Client secret"
+          fieldId="clientSecret"
+          labelHelp={<HelpTooltip content="Viewable and copyable any time, like Keycloak's own Credentials tab. Regenerate to replace it with a new one; the previous secret stops working immediately." />}
+        >
+          <SecretField value={client.clientSecret ?? null} onRegenerate={() => setIsRotateConfirmOpen(true)} />
+        </FormGroup>
+      )}
 
       <FormGroup
         label="Authentication flow"
@@ -235,6 +350,31 @@ export default function ClientDetailPage() {
         ariaLabel="Client details"
         tabs={[{ key: 'settings', title: 'Settings', content: settingsTab }]}
       />
+
+      {isRotateConfirmOpen && (
+        <Modal
+          isOpen
+          onClose={closeRotateConfirm}
+          title="Regenerate client secret?"
+          footer={
+            <>
+              <Button variant="danger" onClick={confirmRotateSecret} isLoading={isRotating}>
+                Regenerate
+              </Button>
+              <Button variant="link" onClick={closeRotateConfirm} isDisabled={isRotating}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          {rotateError && <Alert variant="danger" title={rotateError} />}
+          <p>
+            This generates a new client secret and replaces the stored one immediately.
+            The previous secret stops working right away - update anywhere this client is
+            configured with the new value.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

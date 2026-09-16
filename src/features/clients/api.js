@@ -35,3 +35,9 @@ export function getClient(clientId) {
 export function updateClient(clientId, payload) {
   return bffPatch(`/clients/${encodeURIComponent(clientId)}`, payload);
 }
+
+// Settings tab "Regenerate secret" action - proxied POST
+// /clients/{clientId}/rotate-secret (server/src/routes/clients.js).
+export function rotateSecret(clientId) {
+  return bffPost(`/clients/${encodeURIComponent(clientId)}/rotate-secret`, {});
+}

@@ -70,6 +70,15 @@ export function updateClientApplication(accessToken, clientId, payload) {
   });
 }
 
+// Regenerates this client's secret (existing upstream endpoint,
+// ClientApplicationController#rotateSecret) - the raw secret is only ever
+// returned in this one response, same as createClientApplication above.
+export function rotateClientSecret(accessToken, clientId) {
+  return client.post(`/client-applications/${encodeURIComponent(clientId)}/rotate-secret`, {}, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 // Step 7A/7B - AdminUserController is admin-only, same bearer-forwarding
 // pattern as the client-applications calls above. username is only unique
 // per client_application_id (User's own class Javadoc, V8), so the
