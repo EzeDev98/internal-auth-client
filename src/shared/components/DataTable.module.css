@@ -4,6 +4,33 @@
 
 .table {
   font-size: var(--text-sm);
+  margin: 0 -24px;
+  width: calc(100% + 48px);
+}
+
+.table thead th {
+  border-bottom: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+}
+
+.table thead th:first-child,
+.table tbody td:first-child {
+  padding-left: 24px;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+.table thead th:last-child,
+.table tbody td:last-child {
+  padding-right: 24px;
+}
+
+.actionsCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .pagination {

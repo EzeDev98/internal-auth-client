@@ -2,13 +2,65 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { Form, FormGroup, FormSelect, FormSelectOption, Alert } from '@patternfly/react-core';
+import {
+  Form, FormGroup, Alert,
+  Dropdown, DropdownList, DropdownItem, MenuToggle,
+} from '@patternfly/react-core';
+import { CheckIcon } from '@patternfly/react-icons';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { listRoles } from '../roles/api';
 import { assignRoleToGroup, assignRoleToSubgroup } from './api';
 import { assignRoleSchema } from './assignRoleSchema';
 import styles from './AssignRoleModal.module.css';
+
+// Same reasoning as UsersListPage's StatusFilterDropdown and CreateUserPage's
+// ClientApplicationDropdown - a native <select> (FormSelect) renders its
+// popup via the OS/browser, not us, which is why it showed up as a plain
+// dark system dropdown instead of matching the app's own light popper/menu
+// styling. This is a real anchored PatternFly Dropdown/MenuToggle instead,
+// full width to fill the modal's form field the same way FormSelect did.
+function RoleDropdown({ value, onChange, roles, isLoading, isError }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = (roles ?? []).find((role) => role.roleName === value);
+  const label = selected ? selected.roleName : (isLoading ? 'Loading...' : 'Select a role');
+
+  return (
+    <Dropdown
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      toggle={(toggleRef) => (
+        <MenuToggle
+          ref={toggleRef}
+          id="roleName"
+          aria-label="Select a role"
+          onClick={() => setIsOpen((open) => !open)}
+          isExpanded={isOpen}
+          isDisabled={isLoading}
+          validated={isError ? 'error' : 'default'}
+          className={styles.roleToggle}
+        >
+          {label}
+        </MenuToggle>
+      )}
+    >
+      <DropdownList>
+        {(roles ?? []).map((role) => (
+          <DropdownItem
+            key={role.id}
+            icon={role.roleName === value ? <CheckIcon /> : <span className={styles.checkPlaceholder} />}
+            onClick={() => {
+              onChange(role.roleName);
+              setIsOpen(false);
+            }}
+          >
+            {role.roleName}
+          </DropdownItem>
+        ))}
+      </DropdownList>
+    </Dropdown>
+  );
+}
 
 // Step 9B - existing POST /groups/{groupName}/roles and POST
 // /groups/{parentGroupName}/subgroups/{subGroupName}/roles
@@ -70,17 +122,13 @@ export default function AssignRoleModal({ target, onClose, onAssigned }) {
             name="roleName"
             control={control}
             render={({ field }) => (
-              <FormSelect
-                id="roleName"
+              <RoleDropdown
                 value={field.value}
-                onChange={(_event, value) => field.onChange(value)}
-                validated={errors.roleName ? 'error' : 'default'}
-              >
-                <FormSelectOption value="" label={rolesLoading ? 'Loading...' : 'Select a role'} isDisabled />
-                {(roles ?? []).map((role) => (
-                  <FormSelectOption key={role.id} value={role.roleName} label={role.roleName} />
-                ))}
-              </FormSelect>
+                onChange={field.onChange}
+                roles={roles}
+                isLoading={rolesLoading}
+                isError={Boolean(errors.roleName)}
+              />
             )}
           />
           {errors.roleName && <div className={styles.fieldError}>{errors.roleName.message}</div>}

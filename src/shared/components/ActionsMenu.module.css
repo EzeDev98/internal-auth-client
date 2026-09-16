@@ -1,3 +1,11 @@
 .toggle {
   border-radius: var(--radius);
 }
+
+.toggle:hover,
+.toggle:focus,
+.toggle:focus-visible,
+.toggle[aria-expanded='true'] {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

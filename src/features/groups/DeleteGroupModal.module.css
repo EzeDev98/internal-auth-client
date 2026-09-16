@@ -1,0 +1,10 @@
+.body {
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 14px);
+  color: var(--pf-t--global--text--color--regular, #151515);
+  margin: 0;
+}
+
+.serverError {
+  margin-bottom: 16px;
+}

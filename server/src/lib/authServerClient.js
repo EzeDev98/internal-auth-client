@@ -209,6 +209,12 @@ export function listGroups(accessToken) {
   });
 }
 
+export function fetchGroupByName(accessToken, groupName) {
+  return client.get(`/groups/${encodeURIComponent(groupName)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function listSubgroups(accessToken, id) {
   return client.get(`/groups/${encodeURIComponent(id)}/subgroups`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -247,4 +253,12 @@ export function assignRoleToSubGroup(accessToken, parentGroupName, subGroupName,
     payload,
     { headers: { Authorization: `Bearer ${accessToken}` } },
   );
+}
+
+// Members tab - existing POST /groups/{groupName}/users
+// (PermissionController#addUsersToGroup).
+export function addUserToGroup(accessToken, groupName, payload) {
+  return client.post(`/groups/${encodeURIComponent(groupName)}/users`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 }

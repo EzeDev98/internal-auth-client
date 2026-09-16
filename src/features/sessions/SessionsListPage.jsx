@@ -116,6 +116,7 @@ export default function SessionsListPage() {
     {
       key: 'actions',
       label: '',
+      isAction: true,
       render: (row) => (
         <ActionsMenu
           ariaLabel={`Actions for ${row.username ?? 'session'}`}

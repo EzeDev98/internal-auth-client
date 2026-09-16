@@ -2,12 +2,6 @@ import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { Pagination } from '@patternfly/react-core';
 import styles from './DataTable.module.css';
 
-// Step 4B - plain Keycloak-style table: sortable header row via PatternFly's
-// own Th `sort` prop, and a page-size dropdown + prev/next chevrons via
-// PatternFly's Pagination in isCompact mode (which suppresses the
-// first/last buttons and the numbered page input - see PaginationNavigation
-// - leaving exactly "dropdown + prev/next chevrons, no numbered pagination").
-// No Card wrapper - "no card chrome" per the plan.
 const DEFAULT_PER_PAGE_OPTIONS = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -28,6 +22,8 @@ export default function DataTable({
   perPageOptions = DEFAULT_PER_PAGE_OPTIONS,
   ariaLabel = 'Data table',
   emptyStateMessage = 'No results found.',
+  emptyState,
+  isCompact = false,
 }) {
   const getSortParams = (columnIndex) => ({
     sortBy,
@@ -37,11 +33,17 @@ export default function DataTable({
 
   return (
     <div className={styles.wrapper}>
-      <Table aria-label={ariaLabel} className={styles.table}>
+      <Table aria-label={ariaLabel} className={styles.table} variant={isCompact ? 'compact' : undefined}>
         <Thead>
           <Tr>
             {columns.map((column, index) => (
-              <Th key={column.key} sort={column.sortable ? getSortParams(index) : undefined}>
+              <Th
+                key={column.key}
+                width={column.width}
+                modifier={column.modifier}
+                sort={column.sortable ? getSortParams(index) : undefined}
+                className={column.isAction ? styles.actionsCell : undefined}
+              >
                 {column.label}
               </Th>
             ))}
@@ -50,13 +52,18 @@ export default function DataTable({
         <Tbody>
           {rows.length === 0 ? (
             <Tr>
-              <Td colSpan={columns.length}>{emptyStateMessage}</Td>
+              <Td colSpan={columns.length}>{emptyState ?? emptyStateMessage}</Td>
             </Tr>
           ) : (
             rows.map((row) => (
               <Tr key={rowKey(row)}>
                 {columns.map((column) => (
-                  <Td key={column.key} dataLabel={column.label}>
+                  <Td
+                    key={column.key}
+                    dataLabel={column.label}
+                    modifier={column.modifier}
+                    className={column.isAction ? styles.actionsCell : undefined}
+                  >
                     {column.render ? column.render(row) : row[column.key]}
                   </Td>
                 ))}

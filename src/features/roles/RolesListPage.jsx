@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import AppBreadcrumb from '../../shared/components/Breadcrumb';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
-import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
-import CreateRoleModal from './CreateRoleModal';
+import SearchBar from '../../shared/components/SearchBar';
 import { listRoles } from './api';
 import styles from './RolesListPage.module.css';
 
 const COLUMNS = [
-  { key: 'roleName', label: 'Role name', render: (row) => <Link to={`/roles/${row.id}`}>{row.roleName}</Link> },
-  { key: 'description', label: 'Description', render: (row) => row.description || '—' },
+  {
+    key: 'roleName',
+    label: 'Role name',
+    width: 20,
+    modifier: 'nowrap',
+    render: (row) => <Link to={`/roles/${row.id}`}>{row.roleName}</Link>,
+  },
+  { key: 'description', label: 'Description', modifier: 'truncate', render: (row) => row.description || '—' },
   {
     key: 'scope',
     label: 'Scope',
-    render: (row) => (
-      <Badge>{row.clientApplicationId == null ? 'Global' : `Client #${row.clientApplicationId}`}</Badge>
-    ),
+    width: 15,
+    modifier: 'nowrap',
+    render: (row) => (row.clientApplicationId == null ? 'Global' : `Client #${row.clientApplicationId}`),
   },
   {
     key: 'createdAt',
     label: 'Created',
+    width: 15,
+    modifier: 'nowrap',
     render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—'),
   },
 ];
@@ -33,11 +39,13 @@ const COLUMNS = [
 // /roles/{id}, already exist (RoleQueryService/RoleQueryServiceImpl), both
 // commented as "Step 2C" in that source. listRoles() returns every role
 // unpaginated (plain findAll()), so no Pagination controls here, unlike
-// ClientsListPage/UsersListPage. Step 8B added the create modal; Step 8C
-// added the Role name column's link to the detail page below.
+// ClientsListPage/UsersListPage. Step 8B added the create modal (now Step
+// 13A's CreateRolePage replaces it); Step 8C added the Role name column's
+// link to the detail page below.
 export default function RolesListPage() {
-  const queryClient = useQueryClient();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
 
   const {
     data, isLoading, isError, error, refetch,
@@ -48,18 +56,49 @@ export default function RolesListPage() {
 
   const rows = data ?? [];
 
-  const handleCreated = () => {
-    setIsCreateOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['roles'] });
+  // listRoles() returns every role unpaginated, so like ClientsListPage
+  // this filters the already-loaded list client-side by name/description
+  // rather than querying the server.
+  const filteredRows = useMemo(() => {
+    if (!search) return rows;
+    const needle = search.toLowerCase();
+    return rows.filter(
+      (row) => row.roleName?.toLowerCase().includes(needle) || row.description?.toLowerCase().includes(needle),
+    );
+  }, [rows, search]);
+
+  const handleSearchSubmit = (value) => {
+    setSearch(value.trim());
   };
 
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Roles' }]} />
-
       <div className={styles.toolbar}>
-        <h1 className={styles.title}>Roles</h1>
-        <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
+        <div>
+          <h1 className={styles.title}>Roles</h1>
+          <p className={styles.description}>
+            {'Roles are the roles that you define for use across your organization. '}
+            <a
+              href="#"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Learn more
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.actionsRow}>
+        <SearchBar
+          value={searchInput}
+          onChange={setSearchInput}
+          onSubmit={handleSearchSubmit}
+          placeholder="Search role by name"
+          ariaLabel="Search role by name"
+        />
+
+        <Button variant="primary" onClick={() => navigate('/roles/create')}>
           Create role
         </Button>
       </div>
@@ -68,15 +107,11 @@ export default function RolesListPage() {
         <DataTable
           ariaLabel="Roles"
           columns={COLUMNS}
-          rows={rows}
+          rows={filteredRows}
           rowKey={(row) => row.id}
           emptyStateMessage="No roles found."
         />
       </QueryState>
-
-      {isCreateOpen && (
-        <CreateRoleModal onClose={() => setIsCreateOpen(false)} onCreated={handleCreated} />
-      )}
     </div>
   );
 }

@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// Step 12A - mirrors GroupSummaryResponse, what GET /groups returns per
-// row (PermissionController#listGroups, Step 2D) - not GroupResponse,
-// which is a different DTO for a different endpoint (GET
-// /groups/{groupName}).
 export const groupSummarySchema = z
   .object({
     id: z.number(),
@@ -14,11 +10,6 @@ export const groupSummarySchema = z
   })
   .passthrough();
 
-// Step 12A - mirrors SubGroupSummaryResponse, what
-// GET /groups/{id}/subgroups returns per row
-// (PermissionController#listSubgroups, Step 2D) - not SubGroupResponse
-// (a different endpoint's DTO, and a different field shape:
-// subGroupId/subgroupName vs this one's id/groupName).
 export const subGroupSummarySchema = z
   .object({
     id: z.number(),
@@ -26,5 +17,35 @@ export const subGroupSummarySchema = z
     description: z.string().nullable(),
     parentGroupId: z.number().nullable(),
     createdAt: z.string(),
+  })
+  .passthrough();
+
+export const groupUserSchema = z
+  .object({
+    userId: z.number(),
+    username: z.string().nullable(),
+    email: z.string().nullable(),
+    // Every group/subgroup path this user belongs to, system-wide,
+    // comma-joined by the backend (DtoMapper#buildMembershipPaths) -
+    // matches Keycloak's own Members tab "Membership" column.
+    membership: z.string().nullable(),
+  })
+  .passthrough();
+
+export const groupRoleSchema = z
+  .object({
+    id: z.number(),
+    roleName: z.string(),
+    description: z.string().nullable(),
+  })
+  .passthrough();
+
+export const groupDetailSchema = z
+  .object({
+    groupId: z.number(),
+    groupName: z.string(),
+    description: z.string().nullable(),
+    userResponses: z.array(groupUserSchema),
+    roles: z.array(groupRoleSchema),
   })
   .passthrough();

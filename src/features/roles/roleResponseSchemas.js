@@ -29,6 +29,7 @@ const roleUserSchema = z
   .object({
     id: z.number(),
     username: z.string(),
+    email: z.string().nullable(),
   })
   .passthrough();
 

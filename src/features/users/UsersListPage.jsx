@@ -150,9 +150,6 @@ export default function UsersListPage() {
             </a>
           </p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/users/create')}>
-          Create user
-        </Button>
       </div>
 
       <div className={styles.filters}>
@@ -165,6 +162,9 @@ export default function UsersListPage() {
           className={styles.searchBar}
         />
         <StatusFilterDropdown value={enabledFilter} onChange={handleStatusChange} />
+        <Button variant="primary" onClick={() => navigate('/users/create')}>
+          Create user
+        </Button>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>

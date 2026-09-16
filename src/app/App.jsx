@@ -14,8 +14,11 @@ import UsersListPage from '../features/users/UsersListPage';
 import CreateUserPage from '../features/users/CreateUserPage';
 import UserDetailPage from '../features/users/UserDetailPage';
 import RolesListPage from '../features/roles/RolesListPage';
+import CreateRolePage from '../features/roles/CreateRolePage';
 import RoleDetailPage from '../features/roles/RoleDetailPage';
-import GroupsTreePage from '../features/groups/GroupsTreePage';
+import GroupsListPage from '../features/groups/GroupsListPage';
+import CreateGroupPage from '../features/groups/CreateGroupPage';
+import GroupDetailPage from '../features/groups/GroupDetailPage';
 import WelcomePage from '../features/home/WelcomePage';
 import SessionsListPage from '../features/sessions/SessionsListPage';
 import SettingsPage from '../features/settings/SettingsPage';
@@ -47,8 +50,8 @@ function AppShell() {
 // Step 4F) whether the httpOnly session cookie is still valid; there is
 // nothing client-side to check instead. While that's in flight, render
 // nothing rather than flashing AppShell for a moment - once it resolves,
-// an unauthenticated visitor is sent to Login instead of ever reaching the
-// nav/content underneath.
+// an unauthenticated visitor is sent to Login instead of ever reaching
+// the nav/content underneath.
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -83,8 +86,11 @@ export default function App() {
             <Route path="/users/create" element={<CreateUserPage />} />
             <Route path="/users/:username" element={<UserDetailPage />} />
             <Route path="/roles" element={<RolesListPage />} />
+            <Route path="/roles/create" element={<CreateRolePage />} />
             <Route path="/roles/:id" element={<RoleDetailPage />} />
-            <Route path="/groups" element={<GroupsTreePage />} />
+            <Route path="/groups" element={<GroupsListPage />} />
+            <Route path="/groups/create" element={<CreateGroupPage />} />
+            <Route path="/groups/:id" element={<GroupDetailPage />} />
             <Route path="/sessions" element={<SessionsListPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

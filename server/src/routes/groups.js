@@ -2,10 +2,12 @@ import { Router } from 'express';
 import {
   listGroups,
   listSubgroups,
+  fetchGroupByName,
   createSuperGroup,
   createSubGroup,
   assignRoleToGroup,
   assignRoleToSubGroup,
+  addUserToGroup,
 } from '../lib/authServerClient.js';
 import { requireSession } from '../middleware/requireSession.js';
 import { verifyCsrf } from '../middleware/csrf.js';
@@ -18,6 +20,16 @@ const router = Router();
 // accessToken.
 router.get('/', requireSession, async (req, res) => {
   const upstream = await listGroups(req.session.accessToken);
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+router.get('/:groupName', requireSession, async (req, res) => {
+  const upstream = await fetchGroupByName(req.session.accessToken, req.params.groupName);
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {
@@ -78,6 +90,19 @@ router.post('/:parentGroupName/subgroups/:subGroupName/roles', requireSession, v
     req.params.subGroupName,
     req.body,
   );
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.status(201).json({ success: true, message: body.message, data: body.data });
+});
+
+// Members tab "Add member" button - existing POST /groups/{groupName}/users
+// (PermissionController#addUsersToGroup). verifyCsrf applies since this
+// mutates state, same pattern as the assign-role/create routes above.
+router.post('/:groupName/users', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await addUserToGroup(req.session.accessToken, req.params.groupName, req.body);
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {

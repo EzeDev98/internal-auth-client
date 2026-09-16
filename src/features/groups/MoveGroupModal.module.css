@@ -1,0 +1,30 @@
+.destinationToggle {
+  --pf-v6-c-menu-toggle--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--hover--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--expanded--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  height: 36px !important;
+  border-radius: var(--radius) !important;
+  background: var(--pf-t--global--background--color--primary--default, #fff) !important;
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 14px);
+  box-shadow: none !important;
+}
+
+.destinationToggle::after {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.checkPlaceholder {
+  display: inline-block;
+  width: 16px;
+}
+
+.fieldError {
+  color: var(--pf-t--global--text--color--status--danger--default);
+  font-size: var(--text-xs);
+  margin-top: 4px;
+}

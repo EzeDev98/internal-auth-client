@@ -11,6 +11,11 @@
   margin: 16px 0;
 }
 
+.toolbarActions {
+  display: flex;
+  gap: 8px;
+}
+
 .title {
   font-family: var(--font-heading);
   font-size: var(--text-lg);
@@ -18,14 +23,21 @@
   margin: 0;
 }
 
-.loading,
 .empty {
   color: var(--sidebar-text-inactive);
   font-size: var(--text-sm);
 }
 
-.error {
-  color: var(--pf-t--global--text--color--status--danger--default);
-  font-size: var(--text-sm);
+.tabActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.tabActionsRowEnd {
+  display: flex;
+  justify-content: flex-end;
   margin-bottom: 12px;
 }
