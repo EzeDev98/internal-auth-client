@@ -11,19 +11,53 @@
   margin: 16px 0;
 }
 
+.description {
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 4px 0 16px;
+}
+
 .filters {
   display: flex;
+  align-items: center;
   gap: 12px;
   margin-bottom: 16px;
 }
 
-.searchInput {
-  max-width: 280px;
+.searchBar {
   flex: 1;
 }
 
-.statusSelect {
-  max-width: 200px;
+.revokeAllButton {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Matches SearchBar.module.css's .searchGroup box exactly (height, border,
+   radius, background) so the status filter and the search field read as
+   one consistent row - same rules as UsersListPage.module.css's
+   .statusToggle. */
+.statusToggle {
+  --pf-v6-c-menu-toggle--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--hover--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  --pf-v6-c-menu-toggle--expanded--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
+  min-width: 200px;
+  height: 36px !important;
+  border-radius: var(--radius) !important;
+  background: var(--pf-t--global--background--color--primary--default, #fff) !important;
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 14px);
+  box-shadow: none !important;
+}
+
+.statusToggle::after {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.checkPlaceholder {
+  display: inline-block;
+  width: 16px;
 }
 
 .error {

@@ -75,6 +75,7 @@ export default function ClientsListPage() {
           onSubmit={handleSearchSubmit}
           placeholder="Search for client"
           ariaLabel="Search for client"
+          className={styles.searchBar}
         />
 
         <Button variant="primary" onClick={() => navigate('/clients/create')}>
@@ -88,6 +89,7 @@ export default function ClientsListPage() {
           columns={COLUMNS}
           rows={filteredRows}
           rowKey={(row) => row.id}
+          isCompact
           page={page}
           perPage={perPage}
           itemCount={itemCount}

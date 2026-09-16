@@ -20,6 +20,10 @@
   gap: 8px;
 }
 
+.loginActions :global(.pf-v6-c-button) {
+  padding-block: 10px !important;
+}
+
 .loginActions :global(.pf-v6-c-form__group.pf-m-action) {
   margin-block-start: 0;
 }

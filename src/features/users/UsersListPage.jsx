@@ -173,6 +173,7 @@ export default function UsersListPage() {
           columns={COLUMNS}
           rows={rows}
           rowKey={(row) => row.id}
+          isCompact
           page={page}
           perPage={perPage}
           itemCount={itemCount}

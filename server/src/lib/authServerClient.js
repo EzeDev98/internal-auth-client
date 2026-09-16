@@ -96,6 +96,16 @@ export function getUser(accessToken, username, clientId) {
   });
 }
 
+// Overview tab edit form - PATCH ${app.title}/users/{username}
+// (AdminUserController#updateUser). clientId is required, same reason as
+// getUser above.
+export function updateUser(accessToken, username, clientId, payload) {
+  return client.patch(`/users/${encodeURIComponent(username)}`, payload, {
+    params: { clientId },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function getUserRoles(accessToken, username) {
   return client.get(`/users/${encodeURIComponent(username)}/roles`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -104,6 +114,27 @@ export function getUserRoles(accessToken, username) {
 
 export function getUserPermissionGroups(accessToken, username) {
   return client.get(`/users/${encodeURIComponent(username)}/permission-groups`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 2H - Users - Detail Credentials tab. New GET
+// ${app.title}/users/{username}/credentials (AdminUserController#getCredential).
+export function getUserCredential(accessToken, username, clientId) {
+  return client.get(`/users/${encodeURIComponent(username)}/credentials`, {
+    params: { clientId },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Step 2H - Credentials tab "Reset password" action. New POST
+// ${app.title}/users/{username}/credentials/reset
+// (AdminUserController#resetPassword) - sets the password directly (no
+// OTP/token round trip, unlike the self-service completePasswordReset
+// above) and invalidates the user's active session server-side.
+export function resetUserPassword(accessToken, username, clientId, payload) {
+  return client.post(`/users/${encodeURIComponent(username)}/credentials/reset`, payload, {
+    params: { clientId },
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
@@ -199,6 +230,22 @@ export function createUser(accessToken, clientId, payload) {
   });
 }
 
+// Roles tab "Assign role" action - existing POST
+// ${app.title}/users/{username}/roles (PermissionController#assignRoleToUser).
+export function assignRoleToUser(accessToken, username, payload) {
+  return client.post(`/users/${encodeURIComponent(username)}/roles`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Roles tab "Unassign" action - existing DELETE
+// ${app.title}/users/{username}/roles/{roleName} (PermissionController#unassignRole).
+export function unassignRole(accessToken, username, roleName) {
+  return client.delete(`/users/${encodeURIComponent(username)}/roles/${encodeURIComponent(roleName)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 // Step 9A - PermissionController's GET /groups and GET /groups/{id}/subgroups
 // (@PreAuthorize HAS_ADMIN), same bearer-forwarding pattern as
 // listRoles/getRole above. Both are plain unpaginated queries
@@ -259,6 +306,15 @@ export function assignRoleToSubGroup(accessToken, parentGroupName, subGroupName,
 // (PermissionController#addUsersToGroup).
 export function addUserToGroup(accessToken, groupName, payload) {
   return client.post(`/groups/${encodeURIComponent(groupName)}/users`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+// Permission Groups tab "Leave" action - existing DELETE
+// ${app.title}/groups/{groupName}/users/{username}
+// (PermissionController#removeUserFromGroup).
+export function removeUserFromGroup(accessToken, groupName, username) {
+  return client.delete(`/groups/${encodeURIComponent(groupName)}/users/${encodeURIComponent(username)}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }

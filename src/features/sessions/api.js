@@ -32,3 +32,36 @@ export function revokeSession({ username, clientId }) {
   const params = new URLSearchParams({ clientId: clientId ?? '' });
   return bffDelete(`/users/${encodeURIComponent(username)}/sessions?${params.toString()}`);
 }
+
+// Step 10C - "Revoke all sessions". UserSessionController has no bulk
+// endpoint (only the single username+clientId DELETE Step 10B already
+// uses), so this fetches every row that matches the caller's current
+// filters (ipAddress/device, always forcing active=true regardless of
+// what the caller passed in for `active`, since ending an already-ended
+// session is meaningless) in one large page, de-dupes to unique
+// {username, clientId} pairs skipping rows the single-revoke button would
+// also have disabled (no clientId), and calls the same revokeSession
+// above for each. Uses allSettled, not all, so one bad row can't stop the
+// rest from being revoked - failures are returned, not thrown.
+export async function revokeAllSessions({ ipAddress, device } = {}) {
+  const { content: rows } = await listSessions({
+    ipAddress, device, active: true, page: 0, size: 1000,
+  });
+
+  const seen = new Set();
+  const targets = [];
+  (rows ?? []).forEach((row) => {
+    if (!row.active || !row.clientId) return;
+    const key = `${row.username}::${row.clientId}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    targets.push({ username: row.username, clientId: row.clientId });
+  });
+
+  const results = await Promise.allSettled(targets.map((target) => revokeSession(target)));
+  const failures = results
+    .map((result, index) => (result.status === 'rejected' ? { ...targets[index], error: result.reason } : null))
+    .filter(Boolean);
+
+  return { attempted: targets.length, revoked: targets.length - failures.length, failures };
+}

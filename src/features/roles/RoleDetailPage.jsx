@@ -50,6 +50,7 @@ function UsersInRoleTab({ users }) {
       columns={USERS_IN_ROLE_COLUMNS}
       rows={users}
       rowKey={(user) => user.id}
+      isCompact
       emptyStateMessage="No users directly assigned this role."
     />
   );

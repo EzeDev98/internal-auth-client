@@ -1,16 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { TextInput, FormSelect, FormSelectOption, Alert } from '@patternfly/react-core';
-import AppBreadcrumb from '../../shared/components/Breadcrumb';
+import {
+  Alert, Dropdown, DropdownList, DropdownItem, MenuToggle,
+} from '@patternfly/react-core';
+import { CheckIcon } from '@patternfly/react-icons';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import ActionsMenu from '../../shared/components/ActionsMenu';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
-import { listSessions, revokeSession } from './api';
+import SearchBar from '../../shared/components/SearchBar';
+import { listSessions, revokeSession, revokeAllSessions } from './api';
 import styles from './SessionsListPage.module.css';
 
 const DASH = String.fromCharCode(8212);
+
+const SESSION_STATUS_OPTIONS = [
+  { value: '', label: 'All sessions' },
+  { value: 'true', label: 'Active' },
+  { value: 'false', label: 'Ended' },
+];
+
+// Same Dropdown/MenuToggle pattern as UsersListPage's StatusFilterDropdown
+// (a real anchored popper instead of a native <select>, styled to match
+// SearchBar's box) so the two list screens' status filters look and
+// behave identically.
+function SessionStatusFilterDropdown({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = SESSION_STATUS_OPTIONS.find((option) => option.value === value)
+    ?? SESSION_STATUS_OPTIONS[0];
+
+  return (
+    <Dropdown
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      toggle={(toggleRef) => (
+        <MenuToggle
+          ref={toggleRef}
+          aria-label="Filter by session status"
+          onClick={() => setIsOpen((open) => !open)}
+          isExpanded={isOpen}
+          className={styles.statusToggle}
+        >
+          {selected.label}
+        </MenuToggle>
+      )}
+    >
+      <DropdownList>
+        {SESSION_STATUS_OPTIONS.map((option) => (
+          <DropdownItem
+            key={option.value}
+            icon={option.value === value ? <CheckIcon /> : <span className={styles.checkPlaceholder} />}
+            onClick={() => {
+              onChange(option.value);
+              setIsOpen(false);
+            }}
+          >
+            {option.label}
+          </DropdownItem>
+        ))}
+      </DropdownList>
+    </Dropdown>
+  );
+}
 
 const COLUMNS = [
   { key: 'username', label: 'Username', render: (row) => row.username ?? DASH },
@@ -50,40 +102,37 @@ export default function SessionsListPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
-  const [ipInput, setIpInput] = useState('');
-  const [ipAddress, setIpAddress] = useState('');
-  const [deviceInput, setDeviceInput] = useState('');
-  const [device, setDevice] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [revokeTarget, setRevokeTarget] = useState(null); // null | { username, clientId }
   const [revokeError, setRevokeError] = useState(null);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [isRevokeAllOpen, setIsRevokeAllOpen] = useState(false);
+  const [revokeAllError, setRevokeAllError] = useState(null);
+  const [isRevokingAll, setIsRevokingAll] = useState(false);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIpAddress(ipInput.trim());
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [ipInput]);
+  const handleSearchSubmit = (value) => {
+    setSearch(value.trim());
+    setPage(1);
+  };
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDevice(deviceInput.trim());
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [deviceInput]);
+  // The endpoint still only takes ipAddress and device as two separate
+  // substring filters, ANDed together server-side - so sending one typed
+  // term to both would break device search (an IP never contains e.g.
+  // "axios"). Instead, route the term to whichever field it looks like:
+  // IPv4/IPv6 characters only -> ipAddress, anything else -> device.
+  const isIpLike = /^[0-9a-fA-F:.]+$/.test(search);
 
   const {
     data, isLoading, isError, error, refetch,
   } = useQuery({
-    queryKey: ['sessions', page, perPage, ipAddress, device, activeFilter],
+    queryKey: ['sessions', page, perPage, search, activeFilter],
     queryFn: () => listSessions({
       page: page - 1,
       size: perPage,
-      ipAddress: ipAddress || undefined,
-      device: device || undefined,
+      ipAddress: search && isIpLike ? search : undefined,
+      device: search && !isIpLike ? search : undefined,
       active: activeFilter === '' ? undefined : activeFilter === 'true',
     }),
   });
@@ -108,6 +157,37 @@ export default function SessionsListPage() {
       setRevokeError(err.message);
     } finally {
       setIsRevoking(false);
+    }
+  };
+
+  const closeRevokeAll = () => {
+    if (isRevokingAll) return;
+    setIsRevokeAllOpen(false);
+    setRevokeAllError(null);
+  };
+
+  const confirmRevokeAll = async () => {
+    setRevokeAllError(null);
+    setIsRevokingAll(true);
+    try {
+      const { attempted, failures } = await revokeAllSessions({
+        ipAddress: search && isIpLike ? search : undefined,
+        device: search && !isIpLike ? search : undefined,
+      });
+      if (failures.length > 0) {
+        setRevokeAllError(
+          attempted === failures.length
+            ? 'Could not revoke any sessions. Please try again.'
+            : `Revoked ${attempted - failures.length} of ${attempted} sessions - ${failures.length} failed.`,
+        );
+      } else {
+        setIsRevokeAllOpen(false);
+      }
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    } catch (err) {
+      setRevokeAllError(err.message);
+    } finally {
+      setIsRevokingAll(false);
     }
   };
 
@@ -136,37 +216,35 @@ export default function SessionsListPage() {
 
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Sessions' }]} />
       <h1 className={styles.title}>Sessions</h1>
+      <p className={styles.description}>
+        {'Sessions are sessions of users and the clients that they access within the session. '}
+        <a href="#" target="_blank" rel="noreferrer">Learn more</a>
+      </p>
 
       <div className={styles.filters}>
-        <TextInput
-          aria-label="Filter by IP address"
-          placeholder="IP address"
-          value={ipInput}
-          onChange={(_event, value) => setIpInput(value)}
-          className={styles.searchInput}
+        <SearchBar
+          value={searchInput}
+          onChange={setSearchInput}
+          onSubmit={handleSearchSubmit}
+          placeholder="Search by IP address or device"
+          ariaLabel="Search sessions"
+          className={styles.searchBar}
         />
-        <TextInput
-          aria-label="Filter by device"
-          placeholder="Device"
-          value={deviceInput}
-          onChange={(_event, value) => setDeviceInput(value)}
-          className={styles.searchInput}
-        />
-        <FormSelect
-          aria-label="Filter by active status"
+        <SessionStatusFilterDropdown
           value={activeFilter}
-          onChange={(_event, value) => {
+          onChange={(value) => {
             setActiveFilter(value);
             setPage(1);
           }}
-          className={styles.statusSelect}
+        />
+        <Button
+          variant="danger"
+          className={styles.revokeAllButton}
+          onClick={() => setIsRevokeAllOpen(true)}
         >
-          <FormSelectOption value="" label="All sessions" />
-          <FormSelectOption value="true" label="Active" />
-          <FormSelectOption value="false" label="Ended" />
-        </FormSelect>
+          Revoke all sessions
+        </Button>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
@@ -175,6 +253,7 @@ export default function SessionsListPage() {
           columns={columns}
           rows={rows}
           rowKey={(row) => row.id}
+          isCompact
           page={page}
           perPage={perPage}
           itemCount={itemCount}
@@ -210,6 +289,31 @@ export default function SessionsListPage() {
             <strong>{revokeTarget.username}</strong>
             {' '}
             by ending their active session. They&apos;ll need to sign in again.
+          </p>
+        </Modal>
+      )}
+
+      {isRevokeAllOpen && (
+        <Modal
+          isOpen
+          onClose={closeRevokeAll}
+          title="Revoke all sessions"
+          footer={
+            <>
+              <Button variant="danger" onClick={confirmRevokeAll} isLoading={isRevokingAll}>
+                Revoke all
+              </Button>
+              <Button variant="link" onClick={closeRevokeAll} isDisabled={isRevokingAll}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          {revokeAllError && <Alert variant="danger" title={revokeAllError} />}
+          <p>
+            This will force-log-out every user with an active session
+            {search ? ' matching your current search' : ''}
+            . They&apos;ll all need to sign in again. This can&apos;t be undone.
           </p>
         </Modal>
       )}

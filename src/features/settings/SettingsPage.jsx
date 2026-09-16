@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@patternfly/react-core';
-import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
-import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import { listSigningKeys, rotateSigningKey } from './api';
@@ -16,14 +14,14 @@ const COLUMNS = [
   { key: 'kid', label: 'Key ID', render: (row) => row.kid ?? DASH },
   { key: 'status', label: 'Status', render: (row) => row.status ?? DASH },
   {
-    key: 'current',
-    label: 'Current',
-    render: (row) => (row.current ? <Badge>Current</Badge> : DASH),
-  },
-  {
     key: 'createdAt',
     label: 'Created',
     render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleString() : DASH),
+  },
+  {
+    key: 'retiredAt',
+    label: 'Ended',
+    render: (row) => (row.retiredAt ? new Date(row.retiredAt).toLocaleString() : DASH),
   },
 ];
 
@@ -73,8 +71,11 @@ export default function SettingsPage() {
 
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Settings' }]} />
       <h1 className={styles.title}>Settings</h1>
+      <p className={styles.description}>
+        {'Settings are server-wide configuration for this realm, including the signing key used to sign issued tokens. '}
+        <a href="#" target="_blank" rel="noreferrer">Learn more</a>
+      </p>
 
       <div className={styles.currentKeyRow}>
         <p className={styles.currentKeyLabel}>
@@ -93,6 +94,7 @@ export default function SettingsPage() {
           columns={COLUMNS}
           rows={keys}
           rowKey={(row) => row.kid}
+          isCompact
           emptyStateMessage="No signing keys found."
         />
       </QueryState>

@@ -1,8 +1,5 @@
 import { Nav, NavList, NavItem } from '@patternfly/react-core';
-import { NavLink, useLocation, useNavigate } from 'react-router';
-import Button from './Button';
-import { useAuth } from '../lib/authContext';
-import logo from '../../assets/sidebar-logo-white.png';
+import { NavLink, useLocation } from 'react-router';
 import styles from './Sidebar.module.css';
 
 // Step 4A - the six confirmed nav items (Step 1 decisions), styled per
@@ -29,20 +26,9 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const { pathname } = useLocation();
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
-  };
 
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.brand}>
-        <img src={logo} alt="" className={styles.logo} />
-        <span className={styles.brandText}>Internal Auth</span>
-      </div>
       <Nav aria-label="Primary navigation" theme="dark">
         <NavList>
           {NAV_ITEMS.map(({ to, label }) => {
@@ -55,9 +41,6 @@ export default function Sidebar() {
           })}
         </NavList>
       </Nav>
-      <Button className={styles.logoutButton} variant="link" onClick={handleLogout}>
-        Log out
-      </Button>
     </aside>
   );
 }

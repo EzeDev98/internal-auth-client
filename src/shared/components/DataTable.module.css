@@ -33,6 +33,10 @@
   text-align: right;
 }
 
+.table:global(.pf-m-compact) .actionsCell {
+  padding-block: var(--pf-t--global--spacer--xs, 0.25rem);
+}
+
 .pagination {
   margin-top: 8px;
 }

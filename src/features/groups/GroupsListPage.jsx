@@ -33,6 +33,11 @@ export default function GroupsListPage() {
         render: (row) => <Link to={`/groups/${row.id}`}>{row.groupName}</Link>,
       },
       {
+        key: 'description',
+        label: 'Description',
+        render: (row) => row.description ?? '',
+      },
+      {
         key: 'actions',
         label: '',
         width: 10,
@@ -80,6 +85,7 @@ export default function GroupsListPage() {
           onSubmit={handleSearchSubmit}
           placeholder="Filter groups"
           ariaLabel="Filter groups"
+          className={styles.searchBar}
         />
 
         <Button variant="primary" onClick={() => navigate('/groups/create')}>

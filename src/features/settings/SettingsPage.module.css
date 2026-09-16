@@ -11,6 +11,12 @@
   margin: 16px 0;
 }
 
+.description {
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 4px 0 16px;
+}
+
 .currentKeyRow {
   display: flex;
   align-items: center;

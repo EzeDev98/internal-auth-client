@@ -27,12 +27,14 @@
 .actionsRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 0 24px 16px;
   margin: 0 -24px 16px;
   width: calc(100% + 48px);
-  border-bottom: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+}
+
+.searchBar {
+  flex: 1;
 }
 
 .typeBadge {

@@ -8,6 +8,7 @@ import {
   assignRoleToGroup,
   assignRoleToSubGroup,
   addUserToGroup,
+  removeUserFromGroup,
 } from '../lib/authServerClient.js';
 import { requireSession } from '../middleware/requireSession.js';
 import { verifyCsrf } from '../middleware/csrf.js';
@@ -109,6 +110,19 @@ router.post('/:groupName/users', requireSession, verifyCsrf, async (req, res) =>
     return res.status(upstream.status).json(body);
   }
   return res.status(201).json({ success: true, message: body.message, data: body.data });
+});
+
+// Permission Groups tab "Leave" action - existing DELETE
+// /groups/{groupName}/users/{username} (PermissionController#removeUserFromGroup).
+// verifyCsrf applies since this mutates state.
+router.delete('/:groupName/users/:username', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await removeUserFromGroup(req.session.accessToken, req.params.groupName, req.params.username);
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
 });
 
 export default router;

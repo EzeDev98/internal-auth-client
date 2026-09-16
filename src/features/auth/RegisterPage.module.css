@@ -13,3 +13,7 @@
   margin-top: 16px;
   font-size: var(--text-sm);
 }
+
+.registerActions :global(.pf-v6-c-button) {
+  padding-block: 10px !important;
+}

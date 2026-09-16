@@ -1,12 +1,13 @@
 /* shared/tokens.css — Appendix A design tokens, loaded once at the app root */
 :root {
   --sidebar-bg: #0f1b3d;
+  --header-bg: #0a1330;
   --sidebar-item-active-bg: rgba(255, 255, 255, 0.08);
   --sidebar-text-active: #ffffff;
   --sidebar-text-inactive: #a9b4cc;
   --sidebar-icon-inactive: #7c88a8;
 
-  --radius: 4px;
+  --radius: 2px;
 
   --font-body: 'Red Hat Text', -apple-system, 'Segoe UI', sans-serif;
   --font-heading: 'Red Hat Display', -apple-system, 'Segoe UI', sans-serif;

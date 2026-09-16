@@ -60,3 +60,12 @@ export const userPermissionGroupSchema = z
     description: z.string().nullable(),
   })
   .passthrough();
+
+// Step 2H - mirrors UserCredentialResponse, what
+// GET /users/{username}/credentials returns (AdminUserController#getCredential).
+export const userCredentialSchema = z
+  .object({
+    type: z.string(),
+    createdAt: z.string(),
+  })
+  .passthrough();

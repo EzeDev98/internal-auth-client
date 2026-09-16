@@ -97,3 +97,11 @@ a:visited {
   text-decoration: none;
   color: var(--pf-t--global--text--color--link--default);
 }
+
+/* Every Dropdown menu in the app renders through PatternFly's Menu
+   component, which draws its own rounded popover box (pf-v6-c-menu)
+   independent of the toggle button's own border-radius. Capping it
+   here keeps it in line with --radius (2px) used everywhere else. */
+.pf-v6-c-menu {
+  border-radius: var(--radius) !important;
+}

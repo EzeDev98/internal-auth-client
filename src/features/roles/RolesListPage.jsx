@@ -96,6 +96,7 @@ export default function RolesListPage() {
           onSubmit={handleSearchSubmit}
           placeholder="Search role by name"
           ariaLabel="Search role by name"
+          className={styles.searchBar}
         />
 
         <Button variant="primary" onClick={() => navigate('/roles/create')}>
@@ -109,6 +110,7 @@ export default function RolesListPage() {
           columns={COLUMNS}
           rows={filteredRows}
           rowKey={(row) => row.id}
+          isCompact
           emptyStateMessage="No roles found."
         />
       </QueryState>

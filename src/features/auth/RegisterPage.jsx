@@ -84,7 +84,7 @@ export default function RegisterPage() {
               {errors.confirmPassword && <div className={styles.fieldError}>{errors.confirmPassword.message}</div>}
             </FormGroup>
 
-            <ActionGroup>
+            <ActionGroup className={styles.registerActions}>
               <Button type="submit" isLoading={isSubmitting} variant="primary">Create admin account</Button>
             </ActionGroup>
           </Form>

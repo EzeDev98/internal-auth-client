@@ -10,6 +10,7 @@ export const signingKeySchema = z
     status: z.string(),
     current: z.boolean(),
     createdAt: z.string(),
+    retiredAt: z.string().nullable(),
   })
   .passthrough();
 

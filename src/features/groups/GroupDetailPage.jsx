@@ -18,7 +18,10 @@ import AddMemberModal from './AddMemberModal';
 import { listGroups, listSubgroups, getGroup } from './api';
 import styles from './GroupDetailPage.module.css';
 
-const CHILD_GROUP_COLUMNS = [{ key: 'groupName', label: 'Group name' }];
+const CHILD_GROUP_COLUMNS = [
+  { key: 'groupName', label: 'Group name' },
+  { key: 'description', label: 'Description', render: (row) => row.description || '—' },
+];
 const MEMBER_COLUMNS = [
   { key: 'username', label: 'Username', render: (row) => row.username || '—' },
   { key: 'email', label: 'Email', render: (row) => row.email || '—' },
@@ -220,6 +223,7 @@ export default function GroupDetailPage() {
                     onSubmit={(value) => setChildGroupSearch(value.trim())}
                     placeholder="Search child groups"
                     ariaLabel="Search child groups"
+                    className={styles.searchBar}
                   />
                   <Button variant="primary" onClick={() => setCreateSubgroupOpen(true)}>
                     Create child group
@@ -283,6 +287,7 @@ export default function GroupDetailPage() {
                     onSubmit={(value) => setRoleSearch(value.trim())}
                     placeholder="Search roles"
                     ariaLabel="Search roles"
+                    className={styles.searchBar}
                   />
                   <Button variant="primary" onClick={() => setAssignRoleTarget({ groupName: group.groupName })}>
                     Assign role

@@ -1,31 +1,11 @@
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: var(--sidebar-bg);
-  height: 100vh;
+  background: var(--header-bg);
+  height: 100%;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo {
-  width: 32px;
-  height: 32px;
-}
-
-.brandText {
-  color: var(--sidebar-text-active);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--weight-medium);
 }
 
 .logoutButton {

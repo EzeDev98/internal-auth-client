@@ -87,3 +87,8 @@ export function deleteSubgroup(parentGroupName, subGroupName) {
 export function addGroupMember(groupName, payload) {
   return bffPost(`/groups/${encodeURIComponent(groupName)}/users`, payload);
 }
+
+// Permission Groups tab "Leave" action.
+export function removeGroupMember(groupName, username) {
+  return bffDelete(`/groups/${encodeURIComponent(groupName)}/users/${encodeURIComponent(username)}`);
+}

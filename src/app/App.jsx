@@ -2,6 +2,7 @@ import '@patternfly/react-core/dist/styles/base.css';
 import '../shared/patternfly-overrides.css';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
+import Header from '../shared/components/Header';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
@@ -38,10 +39,13 @@ function AuthLayout() {
 function AppShell() {
   return (
     <div className={styles.shell}>
-      <Sidebar />
-      <main className={styles.content}>
-        <Outlet />
-      </main>
+      <Header />
+      <div className={styles.body}>
+        <Sidebar />
+        <main className={styles.content}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

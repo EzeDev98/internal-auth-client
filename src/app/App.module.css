@@ -1,12 +1,19 @@
 .shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 .content {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
 }
 

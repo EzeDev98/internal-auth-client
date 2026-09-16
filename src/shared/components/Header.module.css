@@ -1,0 +1,75 @@
+.header {
+  height: 72px;
+  flex-shrink: 0;
+  background: var(--header-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+}
+
+.brandText {
+  color: var(--sidebar-text-active);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+}
+
+.toggle {
+  color: var(--sidebar-text-active);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius);
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle:hover,
+.toggle:focus,
+.toggle:focus-visible,
+.toggle[aria-expanded='true'] {
+  color: var(--sidebar-text-active);
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 40px;
+  flex-shrink: 0;
+}
+
+.avatarIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--header-bg);
+}
+
+.toggleText {
+  margin-right: 8px;
+}
+
+.toggleCaret {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}

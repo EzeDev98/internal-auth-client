@@ -20,6 +20,7 @@ export default function ActionsMenu({ items, ariaLabel = 'Actions' }) {
           ref={toggleRef}
           aria-label={ariaLabel}
           variant="plain"
+          size="sm"
           onClick={() => setIsOpen((open) => !open)}
           isExpanded={isOpen}
           className={styles.toggle}
