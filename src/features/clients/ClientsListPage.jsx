@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import DataTable from '../../shared/components/DataTable';
@@ -6,8 +6,13 @@ import QueryState from '../../shared/components/QueryState';
 import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
+import useClientSideSearch from '../../shared/hooks/useClientSideSearch';
 import { listClients } from './api';
 import styles from './ClientsListPage.module.css';
+
+const matchClientRow = (row, needle) => (
+  row.clientId?.toLowerCase().includes(needle) || row.name?.toLowerCase().includes(needle)
+);
 
 const COLUMNS = [
   {
@@ -51,13 +56,8 @@ export default function ClientsListPage() {
   // clientId/name rather than querying the server. Filters live on every
   // keystroke (searchInput) rather than waiting for submit - the client
   // list is already loaded in memory, so there's no request to debounce.
-  const filteredRows = useMemo(() => {
-    const needle = searchInput.trim().toLowerCase();
-    if (!needle) return rows;
-    return rows.filter(
-      (row) => row.clientId?.toLowerCase().includes(needle) || row.name?.toLowerCase().includes(needle),
-    );
-  }, [rows, searchInput]);
+  // Filtering itself now lives in the shared useClientSideSearch hook.
+  const filteredRows = useClientSideSearch(rows, searchInput, matchClientRow);
 
   return (
     <div className={styles.pageBody}>

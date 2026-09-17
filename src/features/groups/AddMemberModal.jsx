@@ -74,6 +74,15 @@ export default function AddMemberModal({ groupName, onClose, onAdded }) {
       >
         <Form id="add-member-form" onSubmit={(event) => event.preventDefault()}>
           <FormGroup label="Username" isRequired fieldId="username-search">
+            {/* Results now render inside the FormGroup, right under the
+                SearchBar, in normal flow - no position:absolute. That was
+                tried and reverted: PatternFly's ModalBody manages its own
+                overflow/scroll for modal content, and an absolutely
+                positioned dropdown could end up clipped or scrolled out of
+                view in that context, which silently hid the results.
+                Keeping this in-flow (just without the FormGroup boundary
+                gap that caused the original "pushed down" look) is what
+                keeps it both visible and closely aligned to the search bar. */}
             <SearchBar
               value={searchInput}
               onChange={setSearchInput}
@@ -81,30 +90,34 @@ export default function AddMemberModal({ groupName, onClose, onAdded }) {
               placeholder="Search by username"
               ariaLabel="Search users to add"
             />
-          </FormGroup>
 
-          {isSearching && catalogLoading && <p className={styles.hint}>Loading users...</p>}
-          {isSearching && !catalogLoading && catalogIsError && (
-            <p className={styles.hint}>{catalogError.message}</p>
-          )}
-          {isSearching && !catalogLoading && !catalogIsError && searchResults.length === 0 && (
-            <p className={styles.hint}>{`No users found for "${trimmedSearch}".`}</p>
-          )}
-          {isSearching && !catalogLoading && !catalogIsError && searchResults.length > 0 && (
-            <ul className={styles.resultsList}>
-              {searchResults.map((user) => (
-                <li key={user.username}>
-                  <button
-                    type="button"
-                    className={styles.resultItem}
-                    onClick={() => setConfirmTarget(user.username)}
-                  >
-                    {user.username}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+            {isSearching && (
+              <div className={styles.resultsBox}>
+                {catalogLoading && <p className={styles.hint}>Loading users...</p>}
+                {!catalogLoading && catalogIsError && (
+                  <p className={styles.hint}>{catalogError.message}</p>
+                )}
+                {!catalogLoading && !catalogIsError && searchResults.length === 0 && (
+                  <p className={styles.hint}>{`No users found for "${trimmedSearch}".`}</p>
+                )}
+                {!catalogLoading && !catalogIsError && searchResults.length > 0 && (
+                  <ul className={styles.resultsList}>
+                    {searchResults.map((user) => (
+                      <li key={user.username}>
+                        <button
+                          type="button"
+                          className={styles.resultItem}
+                          onClick={() => setConfirmTarget(user.username)}
+                        >
+                          {user.username}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </FormGroup>
         </Form>
       </Modal>
 

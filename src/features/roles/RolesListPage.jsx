@@ -1,12 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
+import useClientSideSearch from '../../shared/hooks/useClientSideSearch';
 import { listRoles } from './api';
 import styles from './RolesListPage.module.css';
+
+// Name only, same match rule as GroupsListPage/ClientsListPage - previously
+// this also matched `description`, which let "user" surface create-admin
+// (its description mentions "manage users") alongside user_role.
+const matchRoleRow = (row, needle) => row.roleName?.toLowerCase().includes(needle);
 
 const COLUMNS = [
   {
@@ -56,17 +62,12 @@ export default function RolesListPage() {
   const rows = data ?? [];
 
   // listRoles() returns every role unpaginated, so like ClientsListPage
-  // this filters the already-loaded list client-side by name/description
-  // rather than querying the server. Filters live on every keystroke
-  // (searchInput) rather than waiting for submit - same reasoning as
-  // ClientsListPage's own live-filter fix.
-  const filteredRows = useMemo(() => {
-    const needle = searchInput.trim().toLowerCase();
-    if (!needle) return rows;
-    return rows.filter(
-      (row) => row.roleName?.toLowerCase().includes(needle) || row.description?.toLowerCase().includes(needle),
-    );
-  }, [rows, searchInput]);
+  // this filters the already-loaded list client-side by name rather than
+  // querying the server. Filters live on every keystroke (searchInput)
+  // rather than waiting for submit - same reasoning as ClientsListPage's
+  // own live-filter fix. Filtering itself now lives in the shared
+  // useClientSideSearch hook.
+  const filteredRows = useClientSideSearch(rows, searchInput, matchRoleRow);
 
   return (
     <div className={styles.pageBody}>

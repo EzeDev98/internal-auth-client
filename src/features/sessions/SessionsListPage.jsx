@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert, Dropdown, DropdownList, DropdownItem, MenuToggle,
@@ -10,6 +10,7 @@ import ActionsMenu from '../../shared/components/ActionsMenu';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
+import useDebouncedSearch from '../../shared/hooks/useDebouncedSearch';
 import { listSessions, revokeSession, revokeAllSessions } from './api';
 import styles from './SessionsListPage.module.css';
 
@@ -102,8 +103,6 @@ export default function SessionsListPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [revokeTarget, setRevokeTarget] = useState(null); // null | { username, clientId }
   const [revokeError, setRevokeError] = useState(null);
@@ -112,10 +111,20 @@ export default function SessionsListPage() {
   const [revokeAllError, setRevokeAllError] = useState(null);
   const [isRevokingAll, setIsRevokingAll] = useState(false);
 
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
+  // Live-as-you-type: searchInput updates every keystroke for the SearchBar,
+  // `search` only settles 400ms after typing stops so ipAddress/device
+  // filtering (a real network request) doesn't fire on every keystroke -
+  // now shared via useDebouncedSearch instead of a hand-rolled setTimeout
+  // effect. handleSearchSubmit still commits immediately on Enter/arrow-click.
+  const {
+    searchInput, setSearchInput, search, handleSearchSubmit,
+  } = useDebouncedSearch();
+
+  // Reset to page 1 whenever the committed search term changes, whether
+  // that came from the debounce settling or an explicit submit.
+  useEffect(() => {
     setPage(1);
-  };
+  }, [search]);
 
   // The endpoint still only takes ipAddress and device as two separate
   // substring filters, ANDed together server-side - so sending one typed

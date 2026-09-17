@@ -7,8 +7,11 @@ import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import ActionsMenu from '../../shared/components/ActionsMenu';
 import AssignRoleModal from './AssignRoleModal';
+import useClientSideSearch from '../../shared/hooks/useClientSideSearch';
 import { listGroups } from './api';
 import styles from './GroupsListPage.module.css';
+
+const matchGroupRow = (row, needle) => row.groupName?.toLowerCase().includes(needle);
 
 export default function GroupsListPage() {
   const navigate = useNavigate();
@@ -20,12 +23,9 @@ export default function GroupsListPage() {
 
   // listGroups() returns every group unpaginated, so this filters the
   // already-loaded list client-side, live on every keystroke - same as
-  // ClientsListPage/RolesListPage's own live-filter fix.
-  const filteredRows = useMemo(() => {
-    const needle = searchInput.trim().toLowerCase();
-    if (!needle) return rows;
-    return rows.filter((row) => row.groupName?.toLowerCase().includes(needle));
-  }, [rows, searchInput]);
+  // ClientsListPage/RolesListPage's own live-filter fix. Filtering itself
+  // now lives in the shared useClientSideSearch hook.
+  const filteredRows = useClientSideSearch(rows, searchInput, matchGroupRow);
 
   const columns = useMemo(
     () => [

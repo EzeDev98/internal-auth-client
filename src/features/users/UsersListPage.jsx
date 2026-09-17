@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -10,6 +10,7 @@ import QueryState from '../../shared/components/QueryState';
 import Badge from '../../shared/components/Badge';
 import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
+import useDebouncedSearch from '../../shared/hooks/useDebouncedSearch';
 import { listUsers } from './api';
 import styles from './UsersListPage.module.css';
 
@@ -105,14 +106,22 @@ export default function UsersListPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
   const [enabledFilter, setEnabledFilter] = useState('');
 
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
+  // Live-as-you-type: searchInput updates every keystroke for the SearchBar,
+  // `search` only settles 400ms after typing stops - same pattern as
+  // SessionsListPage, now shared via useDebouncedSearch instead of each page
+  // hand-rolling its own setTimeout effect. handleSearchSubmit still commits
+  // immediately on Enter/arrow-click.
+  const {
+    searchInput, setSearchInput, search, handleSearchSubmit,
+  } = useDebouncedSearch();
+
+  // Reset to page 1 whenever the committed search term changes, whether
+  // that came from the debounce settling or an explicit submit.
+  useEffect(() => {
     setPage(1);
-  };
+  }, [search]);
 
   const handleStatusChange = (value) => {
     setEnabledFilter(value);
