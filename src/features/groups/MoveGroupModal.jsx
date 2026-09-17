@@ -58,13 +58,11 @@ function DestinationDropdown({ value, onChange, groups, isLoading, isError }) {
   );
 }
 
-// UI-only for now - see the TODO(backend) note above moveSubgroup in
-// api.js. There's no re-parent/move endpoint for a subgroup on the BFF or
-// on internal-auth-server yet, so submitting this will fail until that's
-// built; wired up ahead of that work per the "Child groups" actions-menu
-// request. Destination options come from the existing top-level groups
-// list (Step 9A's listGroups), excluding the group's current parent since
-// moving it there would be a no-op.
+// Destination options come from the existing top-level groups list
+// (Step 9A's listGroups), excluding the group's current parent since
+// moving it there would be a no-op. Backed by PATCH
+// /groups/{parentGroupName}/subgroups/{subGroupName}/move
+// (PermissionController#moveSubGroup), proxied via moveSubgroup in api.js.
 export default function MoveGroupModal({ parentGroupName, groupName, onClose, onMoved }) {
   const [serverError, setServerError] = useState(null);
 

@@ -13,17 +13,19 @@ import styles from './GroupsListPage.module.css';
 export default function GroupsListPage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
   const [assignRoleTarget, setAssignRoleTarget] = useState(null); // null | { groupName }
 
   const groupsQuery = useQuery({ queryKey: ['groups'], queryFn: listGroups });
   const rows = groupsQuery.data ?? [];
 
+  // listGroups() returns every group unpaginated, so this filters the
+  // already-loaded list client-side, live on every keystroke - same as
+  // ClientsListPage/RolesListPage's own live-filter fix.
   const filteredRows = useMemo(() => {
-    if (!search) return rows;
-    const needle = search.toLowerCase();
+    const needle = searchInput.trim().toLowerCase();
+    if (!needle) return rows;
     return rows.filter((row) => row.groupName?.toLowerCase().includes(needle));
-  }, [rows, search]);
+  }, [rows, searchInput]);
 
   const columns = useMemo(
     () => [
@@ -59,10 +61,6 @@ export default function GroupsListPage() {
     [],
   );
 
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
-  };
-
   return (
     <div className={styles.pageBody}>
       <div className={styles.toolbar}>
@@ -82,7 +80,6 @@ export default function GroupsListPage() {
         <SearchBar
           value={searchInput}
           onChange={setSearchInput}
-          onSubmit={handleSearchSubmit}
           placeholder="Filter groups"
           ariaLabel="Filter groups"
           className={styles.searchBar}
@@ -105,6 +102,7 @@ export default function GroupsListPage() {
           rows={filteredRows}
           rowKey={(row) => row.id}
           emptyStateMessage="No groups found."
+          isSearching={Boolean(searchInput.trim())}
           isCompact
         />
       </QueryState>

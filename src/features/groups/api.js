@@ -48,19 +48,10 @@ export function assignRoleToSubgroup(parentGroupName, subGroupName, payload) {
   );
 }
 
-// TODO(backend): none of these three exist yet, on the BFF or on
-// internal-auth-server. PermissionController has no PUT/PATCH for groups
-// or subgroups at all, and no move/re-parent endpoint - only the POST
-// (create) and DELETE (subgroup delete) routes exist server-side today.
-// These are wired up client-side ahead of that work landing, per the
-// "Child groups" actions-menu request - each will 404/fail until:
-//   - renameSubgroup: needs PATCH /groups/{parentGroupName}/subgroups/{subGroupName}
-//     (new PermissionManagementService method + controller route + BFF proxy route)
-//   - moveSubgroup: needs PATCH /groups/{parentGroupName}/subgroups/{subGroupName}/move
-//     (new service method to re-parent a SubPermissionGroup + controller route + BFF proxy route)
-//   - deleteSubgroup: the Java endpoint already exists
-//     (DELETE /groups/{parentGroupName}/subgroups/{subGroupName}), but the BFF doesn't
-//     proxy it yet - only that BFF route is missing, not the backend one.
+// renameSubgroup, moveSubgroup, and deleteSubgroup are all fully wired:
+// PATCH/DELETE /groups/{parentGroupName}/subgroups/{subGroupName} (+
+// /move) (PermissionController#renameSubGroup / #moveSubGroup /
+// #deleteSubGroup), proxied by the BFF (server/src/routes/groups.js).
 export function renameSubgroup(parentGroupName, subGroupName, payload) {
   return bffPatch(
     `/groups/${encodeURIComponent(parentGroupName)}/subgroups/${encodeURIComponent(subGroupName)}`,

@@ -45,7 +45,6 @@ const COLUMNS = [
 export default function RolesListPage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
 
   const {
     data, isLoading, isError, error, refetch,
@@ -58,18 +57,16 @@ export default function RolesListPage() {
 
   // listRoles() returns every role unpaginated, so like ClientsListPage
   // this filters the already-loaded list client-side by name/description
-  // rather than querying the server.
+  // rather than querying the server. Filters live on every keystroke
+  // (searchInput) rather than waiting for submit - same reasoning as
+  // ClientsListPage's own live-filter fix.
   const filteredRows = useMemo(() => {
-    if (!search) return rows;
-    const needle = search.toLowerCase();
+    const needle = searchInput.trim().toLowerCase();
+    if (!needle) return rows;
     return rows.filter(
       (row) => row.roleName?.toLowerCase().includes(needle) || row.description?.toLowerCase().includes(needle),
     );
-  }, [rows, search]);
-
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
-  };
+  }, [rows, searchInput]);
 
   return (
     <div className={styles.pageBody}>
@@ -93,7 +90,6 @@ export default function RolesListPage() {
         <SearchBar
           value={searchInput}
           onChange={setSearchInput}
-          onSubmit={handleSearchSubmit}
           placeholder="Search role by name"
           ariaLabel="Search role by name"
           className={styles.searchBar}
@@ -111,6 +107,7 @@ export default function RolesListPage() {
           rows={filteredRows}
           rowKey={(row) => row.id}
           isCompact
+          isSearching={Boolean(searchInput.trim())}
           emptyStateMessage="No roles found."
         />
       </QueryState>

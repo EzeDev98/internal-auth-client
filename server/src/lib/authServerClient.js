@@ -327,3 +327,32 @@ export function removeUserFromGroup(accessToken, groupName, username) {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
+
+// Existing DELETE /groups/{parentGroupName}/subgroups/{subGroupName}
+// (PermissionController#deleteSubGroup) - was never proxied by the BFF.
+export function deleteSubGroup(accessToken, parentGroupName, subGroupName) {
+  return client.delete(
+    `/groups/${encodeURIComponent(parentGroupName)}/subgroups/${encodeURIComponent(subGroupName)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+}
+
+// New PATCH /groups/{parentGroupName}/subgroups/{subGroupName}
+// (PermissionController#renameSubGroup).
+export function renameSubGroup(accessToken, parentGroupName, subGroupName, payload) {
+  return client.patch(
+    `/groups/${encodeURIComponent(parentGroupName)}/subgroups/${encodeURIComponent(subGroupName)}`,
+    payload,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+}
+
+// New PATCH /groups/{parentGroupName}/subgroups/{subGroupName}/move
+// (PermissionController#moveSubGroup).
+export function moveSubGroup(accessToken, parentGroupName, subGroupName, payload) {
+  return client.patch(
+    `/groups/${encodeURIComponent(parentGroupName)}/subgroups/${encodeURIComponent(subGroupName)}/move`,
+    payload,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+}

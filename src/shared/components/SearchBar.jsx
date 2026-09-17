@@ -33,6 +33,13 @@ export default function SearchBar({
         aria-label={ariaLabel ?? placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        autoComplete="off"
+        // Chrome will otherwise treat a bare "Username"-labelled text input
+        // as an address-book field and pop its own "Manage addresses..."
+        // suggestion over ours (seen on the groups Add member search) -
+        // autocomplete="off" alone doesn't reliably stop that heuristic,
+        // but a nonstandard token does.
+        name="search-no-autofill"
       />
       <button type="submit" className={styles.searchSubmit} aria-label="Submit search">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

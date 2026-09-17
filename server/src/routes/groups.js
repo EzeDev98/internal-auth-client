@@ -9,6 +9,9 @@ import {
   assignRoleToSubGroup,
   addUserToGroup,
   removeUserFromGroup,
+  deleteSubGroup,
+  renameSubGroup,
+  moveSubGroup,
 } from '../lib/authServerClient.js';
 import { requireSession } from '../middleware/requireSession.js';
 import { verifyCsrf } from '../middleware/csrf.js';
@@ -117,6 +120,57 @@ router.post('/:groupName/users', requireSession, verifyCsrf, async (req, res) =>
 // verifyCsrf applies since this mutates state.
 router.delete('/:groupName/users/:username', requireSession, verifyCsrf, async (req, res) => {
   const upstream = await removeUserFromGroup(req.session.accessToken, req.params.groupName, req.params.username);
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+// Child groups actions menu "Delete" action - existing DELETE
+// /groups/{parentGroupName}/subgroups/{subGroupName}
+// (PermissionController#deleteSubGroup). The Java endpoint already existed;
+// only this proxy route was missing. verifyCsrf applies since this mutates
+// state, same pattern as the other mutating routes above.
+router.delete('/:parentGroupName/subgroups/:subGroupName', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await deleteSubGroup(req.session.accessToken, req.params.parentGroupName, req.params.subGroupName);
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+// Child groups actions menu "Rename" action - new PATCH
+// /groups/{parentGroupName}/subgroups/{subGroupName}
+// (PermissionController#renameSubGroup).
+router.patch('/:parentGroupName/subgroups/:subGroupName', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await renameSubGroup(
+    req.session.accessToken,
+    req.params.parentGroupName,
+    req.params.subGroupName,
+    req.body,
+  );
+  const body = upstream.data;
+
+  if (upstream.status >= 400 || !body?.success) {
+    return res.status(upstream.status).json(body);
+  }
+  return res.json({ success: true, message: body.message, data: body.data });
+});
+
+// Child groups actions menu "Move" action - new PATCH
+// /groups/{parentGroupName}/subgroups/{subGroupName}/move
+// (PermissionController#moveSubGroup).
+router.patch('/:parentGroupName/subgroups/:subGroupName/move', requireSession, verifyCsrf, async (req, res) => {
+  const upstream = await moveSubGroup(
+    req.session.accessToken,
+    req.params.parentGroupName,
+    req.params.subGroupName,
+    req.body,
+  );
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {

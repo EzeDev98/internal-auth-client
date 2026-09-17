@@ -35,7 +35,6 @@ export default function ClientsListPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
 
   const {
     data, isLoading, isError, error, refetch,
@@ -49,18 +48,16 @@ export default function ClientsListPage() {
 
   // The clients endpoint has no search param on the backend (unlike
   // /users), so this filters the currently loaded page client-side by
-  // clientId/name rather than querying the server.
+  // clientId/name rather than querying the server. Filters live on every
+  // keystroke (searchInput) rather than waiting for submit - the client
+  // list is already loaded in memory, so there's no request to debounce.
   const filteredRows = useMemo(() => {
-    if (!search) return rows;
-    const needle = search.toLowerCase();
+    const needle = searchInput.trim().toLowerCase();
+    if (!needle) return rows;
     return rows.filter(
       (row) => row.clientId?.toLowerCase().includes(needle) || row.name?.toLowerCase().includes(needle),
     );
-  }, [rows, search]);
-
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
-  };
+  }, [rows, searchInput]);
 
   return (
     <div className={styles.pageBody}>
@@ -72,7 +69,6 @@ export default function ClientsListPage() {
         <SearchBar
           value={searchInput}
           onChange={setSearchInput}
-          onSubmit={handleSearchSubmit}
           placeholder="Search for client"
           ariaLabel="Search for client"
           className={styles.searchBar}
@@ -90,6 +86,7 @@ export default function ClientsListPage() {
           rows={filteredRows}
           rowKey={(row) => row.id}
           isCompact
+          isSearching={Boolean(searchInput.trim())}
           page={page}
           perPage={perPage}
           itemCount={itemCount}

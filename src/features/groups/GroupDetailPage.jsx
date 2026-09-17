@@ -76,25 +76,25 @@ export default function GroupDetailPage() {
   const [deleteTarget, setDeleteTarget] = useState(null); // null | { parentGroupName, groupName }
 
   const [childGroupSearchInput, setChildGroupSearchInput] = useState('');
-  const [childGroupSearch, setChildGroupSearch] = useState('');
   const [roleSearchInput, setRoleSearchInput] = useState('');
-  const [roleSearch, setRoleSearch] = useState('');
 
   const subgroups = subgroupsQuery.data ?? [];
   const members = groupDetailQuery.data?.userResponses ?? [];
   const roles = groupDetailQuery.data?.roles ?? [];
 
+  // Filters live on every keystroke rather than waiting for submit - same
+  // reasoning as ClientsListPage/RolesListPage/GroupsListPage's own fix.
   const filteredSubgroups = useMemo(() => {
-    if (!childGroupSearch) return subgroups;
-    const needle = childGroupSearch.toLowerCase();
+    const needle = childGroupSearchInput.trim().toLowerCase();
+    if (!needle) return subgroups;
     return subgroups.filter((row) => row.groupName?.toLowerCase().includes(needle));
-  }, [subgroups, childGroupSearch]);
+  }, [subgroups, childGroupSearchInput]);
 
   const filteredRoles = useMemo(() => {
-    if (!roleSearch) return roles;
-    const needle = roleSearch.toLowerCase();
+    const needle = roleSearchInput.trim().toLowerCase();
+    if (!needle) return roles;
     return roles.filter((row) => row.roleName?.toLowerCase().includes(needle));
-  }, [roles, roleSearch]);
+  }, [roles, roleSearchInput]);
 
   const childGroupColumns = useMemo(
     () => [
@@ -220,7 +220,6 @@ export default function GroupDetailPage() {
                   <SearchBar
                     value={childGroupSearchInput}
                     onChange={setChildGroupSearchInput}
-                    onSubmit={(value) => setChildGroupSearch(value.trim())}
                     placeholder="Search child groups"
                     ariaLabel="Search child groups"
                     className={styles.searchBar}
@@ -235,6 +234,7 @@ export default function GroupDetailPage() {
                   rows={filteredSubgroups}
                   rowKey={(row) => row.id}
                   isCompact
+                  isSearching={Boolean(childGroupSearchInput.trim())}
                   emptyState={(
                     <EmptyState
                       title="No groups in this sub group"
@@ -284,7 +284,6 @@ export default function GroupDetailPage() {
                   <SearchBar
                     value={roleSearchInput}
                     onChange={setRoleSearchInput}
-                    onSubmit={(value) => setRoleSearch(value.trim())}
                     placeholder="Search roles"
                     ariaLabel="Search roles"
                     className={styles.searchBar}
@@ -299,6 +298,7 @@ export default function GroupDetailPage() {
                   rows={filteredRoles}
                   rowKey={(row) => row.id}
                   isCompact
+                  isSearching={Boolean(roleSearchInput.trim())}
                   emptyState={(
                     <EmptyState
                       title="No roles for this group"

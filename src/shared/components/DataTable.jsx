@@ -23,6 +23,7 @@ export default function DataTable({
   ariaLabel = 'Data table',
   emptyStateMessage = 'No results found.',
   emptyState,
+  isSearching = false,
   isCompact = false,
 }) {
   const getSortParams = (columnIndex) => ({
@@ -52,7 +53,14 @@ export default function DataTable({
         <Tbody>
           {rows.length === 0 ? (
             <Tr>
-              <Td colSpan={columns.length}>{emptyState ?? emptyStateMessage}</Td>
+              {/* isSearching means these rows are search-filtered from a
+                  non-empty dataset - "no data at all" empty states (a rich
+                  emptyState card with a Create CTA, or emptyStateMessage)
+                  would be misleading here, so a plain no-matches message
+                  always wins over either when a search is active. */}
+              <Td colSpan={columns.length}>
+                {isSearching ? 'No results match your search.' : (emptyState ?? emptyStateMessage)}
+              </Td>
             </Tr>
           ) : (
             rows.map((row) => (

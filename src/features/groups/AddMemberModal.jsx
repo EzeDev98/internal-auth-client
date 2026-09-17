@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Form, FormGroup, Alert } from '@patternfly/react-core';
 import Modal from '../../shared/components/Modal';
@@ -11,106 +11,123 @@ import styles from './AddMemberModal.module.css';
 // Members tab "Add member" button - existing POST /groups/{groupName}/users
 // (PermissionController#addUsersToGroup) adds an existing user straight
 // into the group (granting them every role already mapped to it), so this
-// picks a user rather than creating one. Reuses the Users feature's own
-// listUsers({ search }) - same search-by-username/phone/email the
-// standalone Users list already supports - instead of a giant unpaginated
-// dropdown, since the user list isn't bounded the way the roles list is
-// (AssignRoleModal's FormSelect approach doesn't scale here).
+// picks a user rather than creating one.
+//
+// Same catalog-fetched-once + instant client-side filter pattern as
+// UserDetailPage's RolesTab/PermissionGroupsTab (no per-keystroke network
+// call, no "Searching..." delay) - fetched lazily on first keystroke and
+// cached, then just filtered in memory as the person keeps typing. Capped
+// at a generous page size rather than paginated, same trade-off as those:
+// fine for a catalog small enough to hold in memory, but a user beyond
+// that first page won't show up here.
+const CATALOG_SIZE = 50;
+
 export default function AddMemberModal({ groupName, onClose, onAdded }) {
   const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [selectedUsername, setSelectedUsername] = useState(null);
-  const [serverError, setServerError] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null); // null | username
+  const [confirmError, setConfirmError] = useState(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
-  const usersQuery = useQuery({
-    queryKey: ['users', 'for-group-add', search],
-    queryFn: () => listUsers({ search, size: 8 }),
-    enabled: Boolean(search),
+  const trimmedSearch = searchInput.trim();
+  const isSearching = Boolean(trimmedSearch);
+
+  const {
+    data: catalog, isLoading: catalogLoading, isError: catalogIsError, error: catalogError,
+  } = useQuery({
+    queryKey: ['users', 'catalog-for-group-add'],
+    queryFn: () => listUsers({ size: CATALOG_SIZE }),
+    enabled: isSearching,
   });
 
-  const results = usersQuery.data?.content ?? [];
+  const searchResults = useMemo(() => {
+    if (!isSearching) return [];
+    const needle = trimmedSearch.toLowerCase();
+    return (catalog?.content ?? []).filter((user) => user.username?.toLowerCase().includes(needle));
+  }, [catalog, isSearching, trimmedSearch]);
 
-  const handleSearchSubmit = (value) => {
-    setSearch(value.trim());
-    setSelectedUsername(null);
+  const closeConfirm = () => {
+    if (isConfirming) return;
+    setConfirmTarget(null);
+    setConfirmError(null);
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!selectedUsername) return;
-    setServerError(null);
-    setIsSubmitting(true);
+  const handleConfirm = async () => {
+    setConfirmError(null);
+    setIsConfirming(true);
     try {
-      await addGroupMember(groupName, { username: selectedUsername });
+      await addGroupMember(groupName, { username: confirmTarget });
       onAdded();
     } catch (err) {
-      setServerError(err.message);
+      setConfirmError(err.message);
     } finally {
-      setIsSubmitting(false);
+      setIsConfirming(false);
     }
   };
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title={`Add member to ${groupName}`}
-      footer={(
-        <>
-          <Button
-            type="submit"
-            form="add-member-form"
-            isLoading={isSubmitting}
-            isDisabled={!selectedUsername}
-            variant="primary"
-          >
-            Add
-          </Button>
-          <Button variant="link" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
+    <>
+      <Modal
+        isOpen
+        onClose={onClose}
+        title={`Add member to ${groupName}`}
+        footer={<Button variant="link" onClick={onClose}>Cancel</Button>}
+      >
+        <Form id="add-member-form" onSubmit={(event) => event.preventDefault()}>
+          <FormGroup label="Username" isRequired fieldId="username-search">
+            <SearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSubmit={setSearchInput}
+              placeholder="Search by username"
+              ariaLabel="Search users to add"
+            />
+          </FormGroup>
+
+          {isSearching && catalogLoading && <p className={styles.hint}>Loading users...</p>}
+          {isSearching && !catalogLoading && catalogIsError && (
+            <p className={styles.hint}>{catalogError.message}</p>
+          )}
+          {isSearching && !catalogLoading && !catalogIsError && searchResults.length === 0 && (
+            <p className={styles.hint}>{`No users found for "${trimmedSearch}".`}</p>
+          )}
+          {isSearching && !catalogLoading && !catalogIsError && searchResults.length > 0 && (
+            <ul className={styles.resultsList}>
+              {searchResults.map((user) => (
+                <li key={user.username}>
+                  <button
+                    type="button"
+                    className={styles.resultItem}
+                    onClick={() => setConfirmTarget(user.username)}
+                  >
+                    {user.username}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Form>
+      </Modal>
+
+      {confirmTarget && (
+        <Modal
+          isOpen
+          onClose={closeConfirm}
+          title={`Add ${confirmTarget} to "${groupName}"?`}
+          footer={(
+            <>
+              <Button variant="primary" isLoading={isConfirming} onClick={handleConfirm}>
+                Add
+              </Button>
+              <Button variant="link" onClick={closeConfirm}>
+                Cancel
+              </Button>
+            </>
+          )}
+        >
+          {confirmError && <Alert variant="danger" title={confirmError} />}
+          <p>{`This adds ${confirmTarget} to the "${groupName}" group.`}</p>
+        </Modal>
       )}
-    >
-      <Form id="add-member-form" onSubmit={handleSubmit}>
-        {serverError && <Alert variant="danger" title={serverError} />}
-
-        <FormGroup label="Username" isRequired fieldId="username-search">
-          <SearchBar
-            value={searchInput}
-            onChange={setSearchInput}
-            onSubmit={handleSearchSubmit}
-            placeholder="Search by username, phone, or email"
-            ariaLabel="Search users to add"
-          />
-        </FormGroup>
-
-        {usersQuery.isLoading && <p className={styles.hint}>Searching...</p>}
-        {usersQuery.isError && <p className={styles.hint}>{usersQuery.error.message}</p>}
-        {search && !usersQuery.isLoading && !usersQuery.isError && results.length === 0 && (
-          <p className={styles.hint}>{`No users found for "${search}".`}</p>
-        )}
-
-        {results.length > 0 && (
-          <ul className={styles.resultsList}>
-            {results.map((user) => (
-              <li key={user.username}>
-                <button
-                  type="button"
-                  className={[
-                    styles.resultItem,
-                    selectedUsername === user.username ? styles.resultItemSelected : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={() => setSelectedUsername(user.username)}
-                >
-                  {user.username}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Form>
-    </Modal>
+    </>
   );
 }

@@ -8,11 +8,10 @@ import { renameSubgroup } from './api';
 import { renameGroupSchema } from './renameGroupSchema';
 import styles from './RenameGroupModal.module.css';
 
-// UI-only for now - see the TODO(backend) note above renameSubgroup in
-// api.js. There's no PATCH endpoint for a subgroup's name on the BFF or on
-// internal-auth-server yet, so submitting this will fail until that's
-// built; wired up ahead of that work per the "Child groups" actions-menu
-// request. Same Modal + react-hook-form/zod shell as CreateGroupModal.
+// Same Modal + react-hook-form/zod shell as CreateGroupModal. Backed by
+// PATCH /groups/{parentGroupName}/subgroups/{subGroupName}
+// (PermissionController#renameSubGroup), proxied via renameSubgroup in
+// api.js.
 export default function RenameGroupModal({ parentGroupName, groupName, onClose, onRenamed }) {
   const [serverError, setServerError] = useState(null);
 

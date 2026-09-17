@@ -33,8 +33,3 @@
 .resultItem:hover {
   background: var(--pf-t--global--background--color--secondary--default, #f2f2f2);
 }
-
-.resultItemSelected {
-  background: var(--pf-t--global--background--color--action--plain--default, #e7f1fa);
-  font-weight: var(--weight-medium);
-}
