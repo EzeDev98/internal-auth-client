@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import {
+  useState, useEffect, useMemo, useRef,
+} from 'react';
 import { useParams, useSearchParams, Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Alert, Form, FormGroup, ActionGroup, Switch, TextInput,
+  Alert, AlertActionCloseButton, Form, FormGroup, ActionGroup, Switch, TextInput,
 } from '@patternfly/react-core';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Tabs from '../../shared/components/Tabs';
@@ -20,9 +22,10 @@ import AssignRoleModal from './AssignRoleModal';
 import JoinGroupModal from './JoinGroupModal';
 import {
   getUser, getUserRoles, getUserPermissionGroups, getUserCredential, resetUserPassword, getUserSessions,
-  updateUser, unassignRole,
+  updateUser, unassignRole, assignRoleToUser,
 } from './api';
-import { removeGroupMember } from '../groups/api';
+import { listRoles } from '../roles/api';
+import { listGroups, addGroupMember, removeGroupMember } from '../groups/api';
 import { revokeSession } from '../sessions/api';
 import { resetUserPasswordSchema } from './resetUserPasswordSchema';
 import { updateUserSchema } from './updateUserSchema';
@@ -34,7 +37,7 @@ import styles from './UserDetailPage.module.css';
 // pattern (danger-variant confirm button, no other fields), just generic
 // enough for both callers instead of two near-identical one-offs.
 function ConfirmActionModal({
-  title, body, confirmLabel, isLoading, error, onConfirm, onClose,
+  title, body, confirmLabel, isLoading, error, onConfirm, onClose, variant = 'danger',
 }) {
   return (
     <Modal
@@ -43,7 +46,7 @@ function ConfirmActionModal({
       title={title}
       footer={(
         <>
-          <Button variant="danger" isLoading={isLoading} onClick={onConfirm}>{confirmLabel}</Button>
+          <Button variant={variant} isLoading={isLoading} onClick={onConfirm}>{confirmLabel}</Button>
           <Button variant="link" onClick={onClose}>Cancel</Button>
         </>
       )}
@@ -216,30 +219,78 @@ const ROLE_COLUMNS_BASE = [
 // a user (that's a group-membership idea, not modelled here).
 function RolesTab({ username }) {
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInputRaw] = useState('');
+  const [dropdownClosed, setDropdownClosed] = useState(false);
+  const searchWrapperRef = useRef(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [unassignTarget, setUnassignTarget] = useState(null); // null | roleName
   const [unassignError, setUnassignError] = useState(null);
   const [isUnassigning, setIsUnassigning] = useState(false);
+  const [quickAssignTarget, setQuickAssignTarget] = useState(null); // null | roleName
+  const [quickAssignError, setQuickAssignError] = useState(null);
+  const [isQuickAssigning, setIsQuickAssigning] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Typing always reopens the dropdown; only a selection or an outside
+  // click closes it early, so narrowing/widening the search text doesn't
+  // require refocusing anything.
+  const setSearchInput = (value) => {
+    setSearchInputRaw(value);
+    setDropdownClosed(false);
+  };
+
+  const trimmedSearch = searchInput.trim();
+  const isSearching = Boolean(trimmedSearch);
+  const showDropdown = isSearching && !dropdownClosed;
+
+  useEffect(() => {
+    if (!showDropdown) return undefined;
+    const handleClickOutside = (event) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
+        setDropdownClosed(true);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDropdown]);
+
+  // The success alert fades itself out visually via assignSuccessAlert's
+  // CSS animation - this just clears it from the tree afterward so it
+  // isn't left invisible-but-present (and so a later assign re-triggers
+  // the animation instead of silently no-op'ing on an unchanged node).
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = setTimeout(() => setSuccessMessage(null), 1000);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
   const {
-    data, isLoading, isError, error, refetch,
+    data, isLoading: assignedLoading, isError: assignedIsError, error: assignedError, refetch: assignedRefetch,
   } = useQuery({
     queryKey: ['users', username, 'roles'],
     queryFn: () => getUserRoles(username),
   });
 
   const roles = data ?? [];
+  const assignedRoleNames = useMemo(() => new Set(roles.map((role) => role.roleName)), [roles]);
 
-  const filteredRoles = useMemo(() => {
-    if (!search) return roles;
-    const needle = search.toLowerCase();
-    return roles.filter((role) => role.roleName?.toLowerCase().includes(needle));
-  }, [roles, search]);
+  const {
+    data: catalog, isLoading: catalogLoading, isError: catalogIsError,
+  } = useQuery({
+    queryKey: ['roles', 'catalog'],
+    queryFn: listRoles,
+    enabled: isSearching,
+  });
 
-  const handleAssigned = () => {
+  const searchResults = useMemo(() => {
+    if (!isSearching) return [];
+    const needle = trimmedSearch.toLowerCase();
+    return (catalog ?? []).filter((role) => role.roleName?.toLowerCase().includes(needle));
+  }, [catalog, isSearching, trimmedSearch]);
+
+  const handleAssigned = (roleName) => {
     setIsAssignOpen(false);
+    setSuccessMessage(roleName ? `Role "${roleName}" assigned to ${username}.` : 'Role assigned successfully.');
     queryClient.invalidateQueries({ queryKey: ['users', username, 'roles'] });
   };
 
@@ -263,7 +314,29 @@ function RolesTab({ username }) {
     }
   };
 
-  const columns = [
+  const closeQuickAssign = () => {
+    if (isQuickAssigning) return;
+    setQuickAssignTarget(null);
+    setQuickAssignError(null);
+  };
+
+  const handleQuickAssign = async () => {
+    setQuickAssignError(null);
+    setIsQuickAssigning(true);
+    try {
+      await assignRoleToUser(username, { roleName: quickAssignTarget });
+      setSuccessMessage(`Role "${quickAssignTarget}" assigned to ${username}.`);
+      setQuickAssignTarget(null);
+      setSearchInputRaw('');
+      queryClient.invalidateQueries({ queryKey: ['users', username, 'roles'] });
+    } catch (err) {
+      setQuickAssignError(err.message);
+    } finally {
+      setIsQuickAssigning(false);
+    }
+  };
+
+  const assignedColumns = [
     ...ROLE_COLUMNS_BASE,
     {
       key: 'actions',
@@ -281,23 +354,71 @@ function RolesTab({ username }) {
   ];
 
   return (
-    <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
-      <div className={styles.tabActionsRow}>
-        <SearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={(value) => setSearch(value.trim())}
-          placeholder="Search by name"
-          ariaLabel="Search roles"
-          className={styles.searchBar}
+    <QueryState
+      isLoading={assignedLoading}
+      isError={assignedIsError}
+      error={assignedError}
+      onRetry={assignedRefetch}
+    >
+      {successMessage && (
+        <Alert
+          variant="success"
+          isInline
+          title={successMessage}
+          actionClose={<AlertActionCloseButton onClose={() => setSuccessMessage(null)} />}
+          className={styles.assignSuccessAlert}
         />
+      )}
+
+      <div className={styles.tabActionsRow}>
+        <div className={styles.searchWrapper} ref={searchWrapperRef}>
+          <SearchBar
+            value={searchInput}
+            onChange={setSearchInput}
+            onSubmit={(value) => setSearchInput(value.trim())}
+            placeholder="Search all roles to assign"
+            ariaLabel="Search roles"
+          />
+          {showDropdown && (
+            <div className={styles.roleDropdown}>
+              {catalogLoading && <div className={styles.roleDropdownMessage}>Loading roles…</div>}
+              {catalogIsError && <div className={styles.roleDropdownMessage}>Couldn&apos;t load roles.</div>}
+              {!catalogLoading && !catalogIsError && searchResults.length === 0 && (
+                <div className={styles.roleDropdownMessage}>No roles found matching your search.</div>
+              )}
+              {!catalogLoading && !catalogIsError && searchResults.map((role) => {
+                const isAssigned = assignedRoleNames.has(role.roleName);
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    className={styles.roleDropdownItemButton}
+                    disabled={isAssigned}
+                    onClick={() => {
+                      setQuickAssignTarget(role.roleName);
+                      setDropdownClosed(true);
+                    }}
+                  >
+                    <span className={styles.roleDropdownText}>
+                      <span className={styles.roleDropdownName}>{role.roleName}</span>
+                      {role.description && (
+                        <span className={styles.roleDropdownDescription}>{role.description}</span>
+                      )}
+                    </span>
+                    {isAssigned && <span className={styles.roleDropdownAssigned}>Assigned</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <Button variant="primary" onClick={() => setIsAssignOpen(true)}>Assign role</Button>
       </div>
 
       <DataTable
         ariaLabel="Role mapping"
-        columns={columns}
-        rows={filteredRoles}
+        columns={assignedColumns}
+        rows={roles}
         rowKey={(row) => row.roleId}
         isCompact
         emptyState={(
@@ -325,6 +446,19 @@ function RolesTab({ username }) {
           onClose={closeUnassign}
         />
       )}
+
+      {quickAssignTarget && (
+        <ConfirmActionModal
+          title={`Assign "${quickAssignTarget}" to ${username}?`}
+          body={`This gives ${username} the "${quickAssignTarget}" role.`}
+          confirmLabel="Assign"
+          variant="primary"
+          isLoading={isQuickAssigning}
+          error={quickAssignError}
+          onConfirm={handleQuickAssign}
+          onClose={closeQuickAssign}
+        />
+      )}
     </QueryState>
   );
 }
@@ -346,6 +480,7 @@ function CredentialsTab({ username, clientId }) {
 
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [resetError, setResetError] = useState(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
   const {
     register, handleSubmit, reset, formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(resetUserPasswordSchema) });
@@ -366,14 +501,33 @@ function CredentialsTab({ username, clientId }) {
     try {
       await resetUserPassword(username, clientId, values);
       setIsResetOpen(false);
+      setResetSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['users', username, 'credentials'] });
     } catch (err) {
       setResetError(err.message);
     }
   };
 
+  // Same shrink-wrap + auto-fade treatment as RolesTab's own
+  // assignSuccessAlert - the modal closing on success gave no other
+  // indication anything had happened.
+  useEffect(() => {
+    if (!resetSuccess) return undefined;
+    const timer = setTimeout(() => setResetSuccess(false), 1000);
+    return () => clearTimeout(timer);
+  }, [resetSuccess]);
+
   return (
     <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+      {resetSuccess && (
+        <Alert
+          variant="success"
+          isInline
+          title="Password reset successfully."
+          actionClose={<AlertActionCloseButton onClose={() => setResetSuccess(false)} />}
+          className={styles.assignSuccessAlert}
+        />
+      )}
       {credential && (
         <table className={styles.credentialTable}>
           <thead>
@@ -450,12 +604,46 @@ const GROUP_COLUMNS_BASE = [
 // "Inherited" column.
 function PermissionGroupsTab({ username }) {
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInputRaw] = useState('');
+  const [dropdownClosed, setDropdownClosed] = useState(false);
+  const searchWrapperRef = useRef(null);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [leaveTarget, setLeaveTarget] = useState(null); // null | groupName
   const [leaveError, setLeaveError] = useState(null);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [quickJoinTarget, setQuickJoinTarget] = useState(null); // null | groupName
+  const [quickJoinError, setQuickJoinError] = useState(null);
+  const [isQuickJoining, setIsQuickJoining] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Same search-catalog + dropdown pattern as RolesTab's own: typing always
+  // reopens the dropdown; only a selection or an outside click closes it.
+  const setSearchInput = (value) => {
+    setSearchInputRaw(value);
+    setDropdownClosed(false);
+  };
+
+  const trimmedSearch = searchInput.trim();
+  const isSearching = Boolean(trimmedSearch);
+  const showDropdown = isSearching && !dropdownClosed;
+
+  useEffect(() => {
+    if (!showDropdown) return undefined;
+    const handleClickOutside = (event) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
+        setDropdownClosed(true);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDropdown]);
+
+  // Same shrink-wrap + auto-fade treatment as RolesTab's own assignSuccessAlert.
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = setTimeout(() => setSuccessMessage(null), 1000);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
   const {
     data, isLoading, isError, error, refetch,
@@ -465,15 +653,28 @@ function PermissionGroupsTab({ username }) {
   });
 
   const groups = data ?? [];
+  const joinedGroupNames = useMemo(() => new Set(groups.map((group) => group.groupName)), [groups]);
 
-  const filteredGroups = useMemo(() => {
-    if (!search) return groups;
-    const needle = search.toLowerCase();
-    return groups.filter((group) => group.groupName?.toLowerCase().includes(needle));
-  }, [groups, search]);
+  // Full group catalog, fetched lazily like RolesTab's own catalog query -
+  // only once the user starts typing - to find groups to join, decoupled
+  // from the (already-joined) rows the table below shows.
+  const {
+    data: catalog, isLoading: catalogLoading, isError: catalogIsError,
+  } = useQuery({
+    queryKey: ['groups', 'catalog'],
+    queryFn: listGroups,
+    enabled: isSearching,
+  });
 
-  const handleJoined = () => {
+  const searchResults = useMemo(() => {
+    if (!isSearching) return [];
+    const needle = trimmedSearch.toLowerCase();
+    return (catalog ?? []).filter((group) => group.groupName?.toLowerCase().includes(needle));
+  }, [catalog, isSearching, trimmedSearch]);
+
+  const handleJoined = (groupName) => {
     setIsJoinOpen(false);
+    setSuccessMessage(groupName ? `Added ${username} to "${groupName}".` : 'Added to permission group successfully.');
     queryClient.invalidateQueries({ queryKey: ['users', username, 'permission-groups'] });
   };
 
@@ -497,6 +698,28 @@ function PermissionGroupsTab({ username }) {
     }
   };
 
+  const closeQuickJoin = () => {
+    if (isQuickJoining) return;
+    setQuickJoinTarget(null);
+    setQuickJoinError(null);
+  };
+
+  const handleQuickJoin = async () => {
+    setQuickJoinError(null);
+    setIsQuickJoining(true);
+    try {
+      await addGroupMember(quickJoinTarget, { username });
+      setSuccessMessage(`Added ${username} to "${quickJoinTarget}".`);
+      setQuickJoinTarget(null);
+      setSearchInputRaw('');
+      queryClient.invalidateQueries({ queryKey: ['users', username, 'permission-groups'] });
+    } catch (err) {
+      setQuickJoinError(err.message);
+    } finally {
+      setIsQuickJoining(false);
+    }
+  };
+
   const columns = [
     ...GROUP_COLUMNS_BASE,
     {
@@ -516,22 +739,68 @@ function PermissionGroupsTab({ username }) {
 
   return (
     <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
-      <div className={styles.tabActionsRow}>
-        <SearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={(value) => setSearch(value.trim())}
-          placeholder="Search by name"
-          ariaLabel="Search permission groups"
-          className={styles.searchBar}
+      {successMessage && (
+        <Alert
+          variant="success"
+          isInline
+          title={successMessage}
+          actionClose={<AlertActionCloseButton onClose={() => setSuccessMessage(null)} />}
+          className={styles.assignSuccessAlert}
         />
+      )}
+
+      <div className={styles.tabActionsRow}>
+        {/* styles.roleDropdown* classes are RolesTab's own dropdown styles,
+            reused as-is - same generic anchored-search-dropdown look, not
+            role-specific despite the name. */}
+        <div className={styles.searchWrapper} ref={searchWrapperRef}>
+          <SearchBar
+            value={searchInput}
+            onChange={setSearchInput}
+            onSubmit={(value) => setSearchInput(value.trim())}
+            placeholder="Search all groups to join"
+            ariaLabel="Search permission groups"
+          />
+          {showDropdown && (
+            <div className={styles.roleDropdown}>
+              {catalogLoading && <div className={styles.roleDropdownMessage}>Loading groups…</div>}
+              {catalogIsError && <div className={styles.roleDropdownMessage}>Couldn&apos;t load groups.</div>}
+              {!catalogLoading && !catalogIsError && searchResults.length === 0 && (
+                <div className={styles.roleDropdownMessage}>No groups found matching your search.</div>
+              )}
+              {!catalogLoading && !catalogIsError && searchResults.map((group) => {
+                const isJoined = joinedGroupNames.has(group.groupName);
+                return (
+                  <button
+                    key={group.id}
+                    type="button"
+                    className={styles.roleDropdownItemButton}
+                    disabled={isJoined}
+                    onClick={() => {
+                      setQuickJoinTarget(group.groupName);
+                      setDropdownClosed(true);
+                    }}
+                  >
+                    <span className={styles.roleDropdownText}>
+                      <span className={styles.roleDropdownName}>{group.groupName}</span>
+                      {group.description && (
+                        <span className={styles.roleDropdownDescription}>{group.description}</span>
+                      )}
+                    </span>
+                    {isJoined && <span className={styles.roleDropdownAssigned}>Joined</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <Button variant="primary" onClick={() => setIsJoinOpen(true)}>Join Group</Button>
       </div>
 
       <DataTable
         ariaLabel="Permission groups"
         columns={columns}
-        rows={filteredGroups}
+        rows={groups}
         rowKey={(row) => row.groupId}
         isCompact
         emptyState={(
@@ -557,6 +826,19 @@ function PermissionGroupsTab({ username }) {
           error={leaveError}
           onConfirm={handleLeave}
           onClose={closeLeave}
+        />
+      )}
+
+      {quickJoinTarget && (
+        <ConfirmActionModal
+          title={`Add ${username} to "${quickJoinTarget}"?`}
+          body={`This adds ${username} to the "${quickJoinTarget}" permission group.`}
+          confirmLabel="Add"
+          variant="primary"
+          isLoading={isQuickJoining}
+          error={quickJoinError}
+          onConfirm={handleQuickJoin}
+          onClose={closeQuickJoin}
         />
       )}
     </QueryState>

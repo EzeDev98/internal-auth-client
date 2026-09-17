@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import {
   Form, FormGroup, Alert,
-  Dropdown, DropdownList, DropdownItem, MenuToggle,
+  Dropdown, DropdownList, DropdownItem, MenuToggle, Spinner,
 } from '@patternfly/react-core';
 import { CheckIcon } from '@patternfly/react-icons';
 import Modal from '../../shared/components/Modal';
@@ -38,6 +38,7 @@ function GroupDropdown({
           validated={isError ? 'error' : 'default'}
           className={styles.groupToggle}
         >
+          {isLoading && <Spinner size="sm" style={{ marginInlineEnd: '8px' }} aria-hidden="true" />}
           {label}
         </MenuToggle>
       )}
@@ -83,7 +84,7 @@ export default function JoinGroupModal({ username, onClose, onJoined }) {
     setServerError(null);
     try {
       await addGroupMember(values.groupName, { username });
-      onJoined();
+      onJoined(values.groupName);
     } catch (err) {
       setServerError(err.message);
     }

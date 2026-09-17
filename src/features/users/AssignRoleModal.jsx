@@ -82,7 +82,7 @@ export default function AssignRoleModal({ username, onClose, onAssigned }) {
     setServerError(null);
     try {
       await assignRoleToUser(username, { roleName: values.roleName });
-      onAssigned();
+      onAssigned(values.roleName);
     } catch (err) {
       setServerError(err.message);
     }
