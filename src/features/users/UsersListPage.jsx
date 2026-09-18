@@ -26,6 +26,12 @@ const COLUMNS = [
   },
   { key: 'email', label: 'Email', render: (row) => row.email ?? '—' },
   { key: 'phoneNumber', label: 'Phone', render: (row) => row.phoneNumber ?? '—' },
+  // clientId has always come back on every row (see AdminUserServiceImpl's
+  // batch clientId resolution) and is already used internally to build the
+  // detail-page link above - it just never had a visible column, so there
+  // was no way to tell which integrating app (SyncPoint, Notare, ...) a
+  // user belonged to without opening its detail page.
+  { key: 'clientId', label: 'App', render: (row) => row.clientId ?? '—' },
   {
     key: 'status',
     label: 'Status',

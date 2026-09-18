@@ -117,6 +117,14 @@ function OverviewTab({ user, username, clientId }) {
         <TextInput id="id" value={String(user.id)} readOnlyVariant="default" />
       </FormGroup>
 
+      {/* clientId was already threaded through as a prop (used to scope
+          every API call on this page) but never actually shown - this is
+          the one place an admin can see which integrating app a user
+          belongs to without cross-referencing the Clients tab manually. */}
+      <FormGroup label="Client application" fieldId="clientId">
+        <TextInput id="clientId" value={clientId ?? '—'} readOnlyVariant="default" />
+      </FormGroup>
+
       <FormGroup label="Created at" fieldId="createdAt">
         <TextInput
           id="createdAt"
