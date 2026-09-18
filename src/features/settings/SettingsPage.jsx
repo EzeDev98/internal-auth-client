@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert } from '@patternfly/react-core';
+import { Alert, Checkbox, TextInput } from '@patternfly/react-core';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
-import { listSigningKeys, rotateSigningKey } from './api';
+import { listSigningKeys, rotateSigningKey, wipeAll } from './api';
 import styles from './SettingsPage.module.css';
 
 const DASH = String.fromCharCode(8212);
+const WIPE_ALL_CONFIRM_PHRASE = 'WIPE-EVERYTHING';
 
 const COLUMNS = [
   { key: 'kid', label: 'Key ID', render: (row) => row.kid ?? DASH },
@@ -39,6 +40,14 @@ export default function SettingsPage() {
   const [rotateError, setRotateError] = useState(null);
   const [isRotating, setIsRotating] = useState(false);
 
+  // Danger zone - "wipe everything" (SyncPoint + Notare + internal-auth).
+  const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
+  const [wipeConfirmText, setWipeConfirmText] = useState('');
+  const [includeSystemWallet, setIncludeSystemWallet] = useState(false);
+  const [wipeError, setWipeError] = useState(null);
+  const [isWiping, setIsWiping] = useState(false);
+  const [wipeResult, setWipeResult] = useState(null);
+
   const {
     data, isLoading, isError, error, refetch,
   } = useQuery({
@@ -66,6 +75,28 @@ export default function SettingsPage() {
       setRotateError(err.message);
     } finally {
       setIsRotating(false);
+    }
+  };
+
+  const closeWipeModal = () => {
+    if (isWiping) return;
+    setIsWipeModalOpen(false);
+    setWipeConfirmText('');
+    setIncludeSystemWallet(false);
+    setWipeError(null);
+    setWipeResult(null);
+  };
+
+  const confirmWipeAll = async () => {
+    setWipeError(null);
+    setIsWiping(true);
+    try {
+      const result = await wipeAll(wipeConfirmText, includeSystemWallet);
+      setWipeResult(result);
+    } catch (err) {
+      setWipeError(err.message);
+    } finally {
+      setIsWiping(false);
     }
   };
 
@@ -99,6 +130,18 @@ export default function SettingsPage() {
         />
       </QueryState>
 
+      <div className={styles.dangerZone}>
+        <h2 className={styles.dangerZoneTitle}>Danger zone</h2>
+        <p className={styles.dangerZoneDescription}>
+          Wipes every user, session, and app-scoped record across SyncPoint, Notare, and
+          internal-auth itself, not just this app. SyncPoint&apos;s and Notare&apos;s own admin
+          wipe buttons keep working on their own - this is the one that runs all three together.
+        </p>
+        <Button variant="danger" onClick={() => setIsWipeModalOpen(true)}>
+          Wipe everything
+        </Button>
+      </div>
+
       {isConfirmOpen && (
         <Modal
           isOpen
@@ -121,6 +164,81 @@ export default function SettingsPage() {
             stays valid for verification during the grace period, so already-issued tokens won&apos;t
             break right away.
           </p>
+        </Modal>
+      )}
+
+      {isWipeModalOpen && (
+        <Modal
+          isOpen
+          onClose={closeWipeModal}
+          title="Wipe everything?"
+          footer={wipeResult ? (
+            <Button variant="primary" onClick={closeWipeModal}>Close</Button>
+          ) : (
+            <>
+              <Button
+                variant="danger"
+                onClick={confirmWipeAll}
+                isLoading={isWiping}
+                isDisabled={wipeConfirmText !== WIPE_ALL_CONFIRM_PHRASE}
+              >
+                Wipe everything
+              </Button>
+              <Button variant="link" onClick={closeWipeModal} isDisabled={isWiping}>
+                Cancel
+              </Button>
+            </>
+          )}
+        >
+          {wipeError && <Alert variant="danger" title={wipeError} />}
+
+          {!wipeResult && (
+            <>
+              <p>
+                Calls SyncPoint&apos;s and Notare&apos;s own wipe endpoints, then internal-auth&apos;s
+                own data, in that order - stopping immediately if any step fails. Neither
+                app&apos;s own wipe endpoint is changed by this; they stay callable on their own.
+                There is no undo.
+              </p>
+              <Checkbox
+                id="wipe-all-include-system-wallet"
+                label="Also wipe SyncPoint's system wallet"
+                isChecked={includeSystemWallet}
+                onChange={(_event, checked) => setIncludeSystemWallet(checked)}
+              />
+              <p className={styles.dangerZoneDescription}>
+                {`Type ${WIPE_ALL_CONFIRM_PHRASE} to confirm.`}
+              </p>
+              <TextInput
+                id="wipe-all-confirm-text"
+                aria-label="Confirmation phrase"
+                value={wipeConfirmText}
+                onChange={(_event, value) => setWipeConfirmText(value)}
+                placeholder={WIPE_ALL_CONFIRM_PHRASE}
+                className={styles.wipeConfirmInput}
+              />
+            </>
+          )}
+
+          {wipeResult && (
+            <ul className={styles.stepList}>
+              {wipeResult.steps.map((step) => (
+                <li
+                  key={step.service}
+                  className={step.success ? styles.stepSuccess : styles.stepFailure}
+                >
+                  <strong>{step.service}</strong>
+                  {': '}
+                  {step.message ?? (step.success ? 'Wiped successfully.' : 'Failed.')}
+                </li>
+              ))}
+              {!wipeResult.completedFully && (
+                <li className={styles.stepFailure}>
+                  Stopped after the failure above - later steps were not attempted.
+                </li>
+              )}
+            </ul>
+          )}
         </Modal>
       )}
     </div>

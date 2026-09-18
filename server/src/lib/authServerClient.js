@@ -356,3 +356,21 @@ export function moveSubGroup(accessToken, parentGroupName, subGroupName, payload
     { headers: { Authorization: `Bearer ${accessToken}` } },
   );
 }
+
+// Settings - Danger zone. New POST /admin/reset/wipe-all
+// (TenantResetController#wipeAll) - wipes SyncPoint, Notare, and
+// internal-auth together (see WipeAllService's own class Javadoc for the
+// order and stop-on-first-failure behavior). Unlike every other call in
+// this file, this endpoint is NOT bearer-authenticated - it sits outside
+// JWT auth entirely (same as its existing wipe-tenant sibling) and is
+// gated on its own shared secret instead, so this sends X-Reset-Secret
+// (env.adminResetSecret) rather than an Authorization header. That secret
+// is never taken from the browser - only this server-side value is ever
+// sent upstream, regardless of what the request body contains.
+export function wipeAll(confirmation, includeSystemWallet) {
+  return client.post(
+    '/admin/reset/wipe-all',
+    { confirmation, includeSystemWallet },
+    { headers: { 'X-Reset-Secret': env.adminResetSecret } },
+  );
+}

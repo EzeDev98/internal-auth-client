@@ -34,3 +34,48 @@
   font-size: var(--text-sm);
   margin-bottom: 12px;
 }
+
+.dangerZone {
+  margin-top: 32px;
+  padding: 16px;
+  border: 1px solid var(--pf-t--global--text--color--status--danger--default);
+  border-radius: 6px;
+}
+
+.dangerZoneTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--pf-t--global--text--color--status--danger--default);
+  margin: 0 0 4px;
+}
+
+.dangerZoneDescription {
+  font-size: var(--text-sm);
+  color: var(--sidebar-icon-inactive);
+  margin: 0 0 12px;
+}
+
+.wipeConfirmInput {
+  margin-top: 4px;
+}
+
+.stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepList li {
+  padding: 6px 0;
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--pf-t--global--border--color--default);
+}
+
+.stepSuccess {
+  color: var(--pf-t--global--text--color--status--success--default);
+}
+
+.stepFailure {
+  color: var(--pf-t--global--text--color--status--danger--default);
+}
