@@ -3,6 +3,7 @@ import '../shared/patternfly-overrides.css';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
 import Sidebar from '../shared/components/Sidebar';
 import Header from '../shared/components/Header';
+import AnimatedOutlet from '../shared/components/AnimatedOutlet';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
@@ -31,7 +32,7 @@ import styles from './App.module.css';
 function AuthLayout() {
   return (
     <div className={styles.authShell}>
-      <Outlet />
+      <AnimatedOutlet />
     </div>
   );
 }
@@ -43,7 +44,7 @@ function AppShell() {
       <div className={styles.body}>
         <Sidebar />
         <main className={styles.content}>
-          <Outlet />
+          <AnimatedOutlet />
         </main>
       </div>
     </div>

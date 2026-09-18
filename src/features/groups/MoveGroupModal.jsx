@@ -8,9 +8,11 @@ import {
 } from '@patternfly/react-core';
 import { CheckIcon } from '@patternfly/react-icons';
 import Modal from '../../shared/components/Modal';
+import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import { listGroups, moveSubgroup } from './api';
 import { moveGroupSchema } from './moveGroupSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './MoveGroupModal.module.css';
 
 // Same reasoning as AssignRoleModal's RoleDropdown - a real anchored
@@ -65,8 +67,11 @@ function DestinationDropdown({ value, onChange, groups, isLoading, isError }) {
 // (PermissionController#moveSubGroup), proxied via moveSubgroup in api.js.
 export default function MoveGroupModal({ parentGroupName, groupName, onClose, onMoved }) {
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
-  const { data: allGroups, isLoading: groupsLoading } = useQuery({
+  const {
+    data: allGroups, isLoading: groupsLoading, isError: groupsIsError, error: groupsError, refetch: groupsRefetch,
+  } = useQuery({
     queryKey: ['groups'],
     queryFn: listGroups,
   });
@@ -81,6 +86,7 @@ export default function MoveGroupModal({ parentGroupName, groupName, onClose, on
     setServerError(null);
     try {
       await moveSubgroup(parentGroupName, groupName, { newParentGroupName: values.destinationGroupName });
+      toast.success(`Moved "${groupName}" to "${values.destinationGroupName}".`);
       onMoved();
     } catch (err) {
       setServerError(err.message);
@@ -107,22 +113,24 @@ export default function MoveGroupModal({ parentGroupName, groupName, onClose, on
         {serverError && <Alert variant="danger" title={serverError} />}
 
         <FormGroup label="Destination group" isRequired fieldId="destinationGroupName">
-          <Controller
-            name="destinationGroupName"
-            control={control}
-            render={({ field }) => (
-              <DestinationDropdown
-                value={field.value}
-                onChange={field.onChange}
-                groups={destinationOptions}
-                isLoading={groupsLoading}
-                isError={Boolean(errors.destinationGroupName)}
-              />
+          <QueryState isLoading={groupsLoading} isError={groupsIsError} error={groupsError} onRetry={groupsRefetch}>
+            <Controller
+              name="destinationGroupName"
+              control={control}
+              render={({ field }) => (
+                <DestinationDropdown
+                  value={field.value}
+                  onChange={field.onChange}
+                  groups={destinationOptions}
+                  isLoading={groupsLoading}
+                  isError={Boolean(errors.destinationGroupName)}
+                />
+              )}
+            />
+            {errors.destinationGroupName && (
+              <div className={styles.fieldError}>{errors.destinationGroupName.message}</div>
             )}
-          />
-          {errors.destinationGroupName && (
-            <div className={styles.fieldError}>{errors.destinationGroupName.message}</div>
-          )}
+          </QueryState>
         </FormGroup>
       </Form>
     </Modal>

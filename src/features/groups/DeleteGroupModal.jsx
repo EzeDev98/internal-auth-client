@@ -3,6 +3,7 @@ import { Alert } from '@patternfly/react-core';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { deleteSubgroup } from './api';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './DeleteGroupModal.module.css';
 
 // UI-only for now, same as RenameGroupModal/MoveGroupModal - see the
@@ -16,12 +17,14 @@ import styles from './DeleteGroupModal.module.css';
 export default function DeleteGroupModal({ parentGroupName, groupName, onClose, onDeleted }) {
   const [serverError, setServerError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const toast = useToast();
 
   const handleDelete = async () => {
     setServerError(null);
     setIsDeleting(true);
     try {
       await deleteSubgroup(parentGroupName, groupName);
+      toast.success(`Deleted "${groupName}".`);
       onDeleted();
     } catch (err) {
       setServerError(err.message);

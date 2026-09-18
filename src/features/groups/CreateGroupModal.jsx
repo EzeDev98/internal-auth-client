@@ -6,6 +6,7 @@ import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { createGroup, createSubgroup } from './api';
 import { createGroupSchema } from './createGroupSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './CreateGroupModal.module.css';
 
 // Step 9B - existing POST /groups (top-level) and POST
@@ -16,6 +17,7 @@ import styles from './CreateGroupModal.module.css';
 // same as CreateRoleModal - neither response carries a sensitive value.
 export default function CreateGroupModal({ parentGroupName, onClose, onCreated }) {
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
   const {
     register, handleSubmit, formState: { errors, isSubmitting },
@@ -30,6 +32,7 @@ export default function CreateGroupModal({ parentGroupName, onClose, onCreated }
       } else {
         await createGroup(payload);
       }
+      toast.success(parentGroupName ? 'Subgroup created' : 'Group created');
       onCreated();
     } catch (err) {
       setServerError(err.message);

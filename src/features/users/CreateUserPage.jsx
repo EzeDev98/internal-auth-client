@@ -14,6 +14,7 @@ import PasswordInput from '../../shared/components/PasswordInput';
 import { listClients } from '../clients/api';
 import { createUser } from './api';
 import { createUserSchema } from './createUserSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './CreateUserPage.module.css';
 
 // Same reasoning as UsersListPage's StatusFilterDropdown - a native
@@ -76,6 +77,7 @@ function ClientApplicationDropdown({ value, onChange, clients, isLoading, isErro
 export default function CreateUserPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
   const { data: clientsPage, isLoading: clientsLoading } = useQuery({
     queryKey: ['clients', 'for-user-create'],
@@ -102,6 +104,7 @@ export default function CreateUserPage() {
         password: values.password,
         confirmPassword: values.confirmPassword,
       });
+      toast.success('User created');
       goToUsers();
     } catch (err) {
       setServerError(err.message);

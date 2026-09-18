@@ -7,6 +7,7 @@ import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Button from '../../shared/components/Button';
 import { createGroup } from './api';
 import { createGroupSchema } from './createGroupSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './CreateGroupPage.module.css';
 
 // Replaces the top-level "Create group" modal on GroupsListPage - same
@@ -21,6 +22,7 @@ import styles from './CreateGroupPage.module.css';
 export default function CreateGroupPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
   const {
     register, handleSubmit, formState: { errors, isSubmitting },
@@ -35,6 +37,7 @@ export default function CreateGroupPage() {
         groupName: values.groupName,
         description: values.description || undefined,
       });
+      toast.success('Group created');
       goToGroups();
     } catch (err) {
       setServerError(err.message);

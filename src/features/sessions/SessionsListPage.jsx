@@ -12,6 +12,7 @@ import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
 import useDebouncedSearch from '../../shared/hooks/useDebouncedSearch';
 import { listSessions, revokeSession, revokeAllSessions } from './api';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './SessionsListPage.module.css';
 
 const DASH = String.fromCharCode(8212);
@@ -101,6 +102,7 @@ const COLUMNS = [
 // its own Step 4E docblock intends ("confirmation dialogs, simple forms").
 export default function SessionsListPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [activeFilter, setActiveFilter] = useState('');
@@ -160,6 +162,7 @@ export default function SessionsListPage() {
     setIsRevoking(true);
     try {
       await revokeSession(revokeTarget);
+      toast.success(`Revoked ${revokeTarget.username}'s session.`);
       setRevokeTarget(null);
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     } catch (err) {
@@ -190,6 +193,7 @@ export default function SessionsListPage() {
             : `Revoked ${attempted - failures.length} of ${attempted} sessions - ${failures.length} failed.`,
         );
       } else {
+        toast.success(`Revoked ${attempted} session${attempted === 1 ? '' : 's'}.`);
         setIsRevokeAllOpen(false);
       }
       queryClient.invalidateQueries({ queryKey: ['sessions'] });

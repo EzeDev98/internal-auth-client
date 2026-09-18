@@ -6,6 +6,7 @@ import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { renameSubgroup } from './api';
 import { renameGroupSchema } from './renameGroupSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './RenameGroupModal.module.css';
 
 // Same Modal + react-hook-form/zod shell as CreateGroupModal. Backed by
@@ -14,6 +15,7 @@ import styles from './RenameGroupModal.module.css';
 // api.js.
 export default function RenameGroupModal({ parentGroupName, groupName, onClose, onRenamed }) {
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
   const {
     register, handleSubmit, formState: { errors, isSubmitting },
@@ -23,6 +25,7 @@ export default function RenameGroupModal({ parentGroupName, groupName, onClose, 
     setServerError(null);
     try {
       await renameSubgroup(parentGroupName, groupName, { groupName: values.groupName });
+      toast.success(`Renamed "${groupName}" to "${values.groupName}".`);
       onRenamed();
     } catch (err) {
       setServerError(err.message);

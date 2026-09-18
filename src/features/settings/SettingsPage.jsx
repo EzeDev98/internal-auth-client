@@ -8,6 +8,7 @@ import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import { listSigningKeys, rotateSigningKey, wipeAll } from './api';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './SettingsPage.module.css';
 
 const DASH = String.fromCharCode(8212);
@@ -38,6 +39,7 @@ const COLUMNS = [
 // without its pagination props (its own onSetPage prop is optional).
 export default function SettingsPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [rotateError, setRotateError] = useState(null);
   const [isRotating, setIsRotating] = useState(false);
@@ -71,6 +73,7 @@ export default function SettingsPage() {
     setIsRotating(true);
     try {
       await rotateSigningKey();
+      toast.success('Signing key rotated');
       setIsConfirmOpen(false);
       queryClient.invalidateQueries({ queryKey: ['signingKeys'] });
     } catch (err) {

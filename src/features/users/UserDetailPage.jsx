@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Alert, AlertActionCloseButton, Form, FormGroup, ActionGroup, Switch, TextInput,
+  Alert, Form, FormGroup, ActionGroup, Switch, TextInput,
 } from '@patternfly/react-core';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Tabs from '../../shared/components/Tabs';
@@ -29,6 +29,7 @@ import { listGroups, addGroupMember, removeGroupMember } from '../groups/api';
 import { revokeSession } from '../sessions/api';
 import { resetUserPasswordSchema } from './resetUserPasswordSchema';
 import { updateUserSchema } from './updateUserSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './UserDetailPage.module.css';
 
 // Small reusable danger-confirm modal, shared by the Roles tab's
@@ -227,6 +228,7 @@ const ROLE_COLUMNS_BASE = [
 // a user (that's a group-membership idea, not modelled here).
 function RolesTab({ username }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [searchInput, setSearchInputRaw] = useState('');
   const [dropdownClosed, setDropdownClosed] = useState(false);
   const searchWrapperRef = useRef(null);
@@ -237,7 +239,6 @@ function RolesTab({ username }) {
   const [quickAssignTarget, setQuickAssignTarget] = useState(null); // null | roleName
   const [quickAssignError, setQuickAssignError] = useState(null);
   const [isQuickAssigning, setIsQuickAssigning] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(null);
 
   // Typing always reopens the dropdown; only a selection or an outside
   // click closes it early, so narrowing/widening the search text doesn't
@@ -261,16 +262,6 @@ function RolesTab({ username }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDropdown]);
-
-  // The success alert fades itself out visually via assignSuccessAlert's
-  // CSS animation - this just clears it from the tree afterward so it
-  // isn't left invisible-but-present (and so a later assign re-triggers
-  // the animation instead of silently no-op'ing on an unchanged node).
-  useEffect(() => {
-    if (!successMessage) return undefined;
-    const timer = setTimeout(() => setSuccessMessage(null), 1000);
-    return () => clearTimeout(timer);
-  }, [successMessage]);
 
   const {
     data, isLoading: assignedLoading, isError: assignedIsError, error: assignedError, refetch: assignedRefetch,
@@ -298,7 +289,7 @@ function RolesTab({ username }) {
 
   const handleAssigned = (roleName) => {
     setIsAssignOpen(false);
-    setSuccessMessage(roleName ? `Role "${roleName}" assigned to ${username}.` : 'Role assigned successfully.');
+    toast.success(roleName ? `Role "${roleName}" assigned to ${username}.` : 'Role assigned successfully.');
     queryClient.invalidateQueries({ queryKey: ['users', username, 'roles'] });
   };
 
@@ -333,7 +324,7 @@ function RolesTab({ username }) {
     setIsQuickAssigning(true);
     try {
       await assignRoleToUser(username, { roleName: quickAssignTarget });
-      setSuccessMessage(`Role "${quickAssignTarget}" assigned to ${username}.`);
+      toast.success(`Role "${quickAssignTarget}" assigned to ${username}.`);
       setQuickAssignTarget(null);
       setSearchInputRaw('');
       queryClient.invalidateQueries({ queryKey: ['users', username, 'roles'] });
@@ -368,16 +359,6 @@ function RolesTab({ username }) {
       error={assignedError}
       onRetry={assignedRefetch}
     >
-      {successMessage && (
-        <Alert
-          variant="success"
-          isInline
-          title={successMessage}
-          actionClose={<AlertActionCloseButton onClose={() => setSuccessMessage(null)} />}
-          className={styles.assignSuccessAlert}
-        />
-      )}
-
       <div className={styles.tabActionsRow}>
         <div className={styles.searchWrapper} ref={searchWrapperRef}>
           <SearchBar
@@ -479,6 +460,7 @@ function RolesTab({ username }) {
 // affordance - the server never returns the hash itself, only metadata.
 function CredentialsTab({ username, clientId }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const {
     data: credential, isLoading, isError, error, refetch,
   } = useQuery({
@@ -488,7 +470,6 @@ function CredentialsTab({ username, clientId }) {
 
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [resetError, setResetError] = useState(null);
-  const [resetSuccess, setResetSuccess] = useState(false);
   const {
     register, handleSubmit, reset, formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(resetUserPasswordSchema) });
@@ -509,33 +490,15 @@ function CredentialsTab({ username, clientId }) {
     try {
       await resetUserPassword(username, clientId, values);
       setIsResetOpen(false);
-      setResetSuccess(true);
+      toast.success('Password reset successfully.');
       queryClient.invalidateQueries({ queryKey: ['users', username, 'credentials'] });
     } catch (err) {
       setResetError(err.message);
     }
   };
 
-  // Same shrink-wrap + auto-fade treatment as RolesTab's own
-  // assignSuccessAlert - the modal closing on success gave no other
-  // indication anything had happened.
-  useEffect(() => {
-    if (!resetSuccess) return undefined;
-    const timer = setTimeout(() => setResetSuccess(false), 1000);
-    return () => clearTimeout(timer);
-  }, [resetSuccess]);
-
   return (
     <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
-      {resetSuccess && (
-        <Alert
-          variant="success"
-          isInline
-          title="Password reset successfully."
-          actionClose={<AlertActionCloseButton onClose={() => setResetSuccess(false)} />}
-          className={styles.assignSuccessAlert}
-        />
-      )}
       {credential && (
         <table className={styles.credentialTable}>
           <thead>
@@ -612,6 +575,7 @@ const GROUP_COLUMNS_BASE = [
 // "Inherited" column.
 function PermissionGroupsTab({ username }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [searchInput, setSearchInputRaw] = useState('');
   const [dropdownClosed, setDropdownClosed] = useState(false);
   const searchWrapperRef = useRef(null);
@@ -622,7 +586,6 @@ function PermissionGroupsTab({ username }) {
   const [quickJoinTarget, setQuickJoinTarget] = useState(null); // null | groupName
   const [quickJoinError, setQuickJoinError] = useState(null);
   const [isQuickJoining, setIsQuickJoining] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(null);
 
   // Same search-catalog + dropdown pattern as RolesTab's own: typing always
   // reopens the dropdown; only a selection or an outside click closes it.
@@ -645,13 +608,6 @@ function PermissionGroupsTab({ username }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDropdown]);
-
-  // Same shrink-wrap + auto-fade treatment as RolesTab's own assignSuccessAlert.
-  useEffect(() => {
-    if (!successMessage) return undefined;
-    const timer = setTimeout(() => setSuccessMessage(null), 1000);
-    return () => clearTimeout(timer);
-  }, [successMessage]);
 
   const {
     data, isLoading, isError, error, refetch,
@@ -682,7 +638,7 @@ function PermissionGroupsTab({ username }) {
 
   const handleJoined = (groupName) => {
     setIsJoinOpen(false);
-    setSuccessMessage(groupName ? `Added ${username} to "${groupName}".` : 'Added to permission group successfully.');
+    toast.success(groupName ? `Added ${username} to "${groupName}".` : 'Added to permission group successfully.');
     queryClient.invalidateQueries({ queryKey: ['users', username, 'permission-groups'] });
   };
 
@@ -717,7 +673,7 @@ function PermissionGroupsTab({ username }) {
     setIsQuickJoining(true);
     try {
       await addGroupMember(quickJoinTarget, { username });
-      setSuccessMessage(`Added ${username} to "${quickJoinTarget}".`);
+      toast.success(`Added ${username} to "${quickJoinTarget}".`);
       setQuickJoinTarget(null);
       setSearchInputRaw('');
       queryClient.invalidateQueries({ queryKey: ['users', username, 'permission-groups'] });
@@ -747,16 +703,6 @@ function PermissionGroupsTab({ username }) {
 
   return (
     <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
-      {successMessage && (
-        <Alert
-          variant="success"
-          isInline
-          title={successMessage}
-          actionClose={<AlertActionCloseButton onClose={() => setSuccessMessage(null)} />}
-          className={styles.assignSuccessAlert}
-        />
-      )}
-
       <div className={styles.tabActionsRow}>
         {/* styles.roleDropdown* classes are RolesTab's own dropdown styles,
             reused as-is - same generic anchored-search-dropdown look, not
@@ -878,6 +824,7 @@ const SESSION_COLUMNS = [
 // than a per-row action.
 function SessionsTab({ username, clientId }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [logoutError, setLogoutError] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -913,6 +860,7 @@ function SessionsTab({ username, clientId }) {
     setIsLoggingOut(true);
     try {
       await revokeSession({ username, clientId });
+      toast.success('Logged out all sessions');
       queryClient.invalidateQueries({ queryKey: ['users', username, 'sessions'] });
     } catch (err) {
       setLogoutError(err.message);
@@ -976,45 +924,43 @@ export default function UserDetailPage() {
     );
   }
 
-  if (isLoading || isError) {
-    return (
-      <div className={styles.pageBody}>
-        <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch} />
-      </div>
-    );
-  }
-
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Users', to: '/users' }, { label: 'User details' }]} />
-      <h1 className={styles.title}>{user.username}</h1>
+      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+        {user && (
+          <>
+            <AppBreadcrumb items={[{ label: 'Users', to: '/users' }, { label: 'User details' }]} />
+            <h1 className={styles.title}>{user.username}</h1>
 
-      <Tabs
-        ariaLabel="User details"
-        tabs={[
-          {
-            key: 'overview',
-            title: 'Overview',
-            content: <OverviewTab user={user} username={username} clientId={clientId} />,
-          },
-          { key: 'roles', title: 'Roles', content: <RolesTab username={username} /> },
-          {
-            key: 'credentials',
-            title: 'Credentials',
-            content: <CredentialsTab username={username} clientId={clientId} />,
-          },
-          {
-            key: 'permission-groups',
-            title: 'Permission Groups',
-            content: <PermissionGroupsTab username={username} />,
-          },
-          {
-            key: 'sessions',
-            title: 'Sessions',
-            content: <SessionsTab username={username} clientId={clientId} />,
-          },
-        ]}
-      />
+            <Tabs
+              ariaLabel="User details"
+              tabs={[
+                {
+                  key: 'overview',
+                  title: 'Overview',
+                  content: <OverviewTab user={user} username={username} clientId={clientId} />,
+                },
+                { key: 'roles', title: 'Roles', content: <RolesTab username={username} /> },
+                {
+                  key: 'credentials',
+                  title: 'Credentials',
+                  content: <CredentialsTab username={username} clientId={clientId} />,
+                },
+                {
+                  key: 'permission-groups',
+                  title: 'Permission Groups',
+                  content: <PermissionGroupsTab username={username} />,
+                },
+                {
+                  key: 'sessions',
+                  title: 'Sessions',
+                  content: <SessionsTab username={username} clientId={clientId} />,
+                },
+              ]}
+            />
+          </>
+        )}
+      </QueryState>
     </div>
   );
 }

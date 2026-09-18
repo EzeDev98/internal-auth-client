@@ -178,192 +178,186 @@ export default function GroupDetailPage() {
   const isLoading = groupsQuery.isLoading || subgroupsQuery.isLoading || groupDetailQuery.isLoading;
   const isError = groupsQuery.isError || subgroupsQuery.isError || groupDetailQuery.isError;
 
-  if (isLoading || isError) {
-    return (
-      <div className={styles.pageBody}>
-        <QueryState
-          isLoading={isLoading}
-          isError={isError}
-          error={groupsQuery.error ?? subgroupsQuery.error ?? groupDetailQuery.error}
-          onRetry={() => { groupsQuery.refetch(); subgroupsQuery.refetch(); groupDetailQuery.refetch(); }}
-        />
-      </div>
-    );
-  }
-
-  if (!group) {
-    return (
-      <div className={styles.pageBody}>
-        <AppBreadcrumb items={[{ label: 'Groups', to: '/groups' }, { label: 'Not found' }]} />
-        <p className={styles.empty}>Group not found.</p>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Groups', to: '/groups' }, { label: group.groupName }]} />
+      <QueryState
+        isLoading={isLoading}
+        isError={isError}
+        error={groupsQuery.error ?? subgroupsQuery.error ?? groupDetailQuery.error}
+        onRetry={() => { groupsQuery.refetch(); subgroupsQuery.refetch(); groupDetailQuery.refetch(); }}
+      >
+        {!group ? (
+          <>
+            <AppBreadcrumb items={[{ label: 'Groups', to: '/groups' }, { label: 'Not found' }]} />
+            <p className={styles.empty}>Group not found.</p>
+          </>
+        ) : (
+          <>
+            <AppBreadcrumb items={[{ label: 'Groups', to: '/groups' }, { label: group.groupName }]} />
 
-      <div className={styles.toolbar}>
-        <h1 className={styles.title}>{group.groupName}</h1>
-      </div>
+            <div className={styles.toolbar}>
+              <h1 className={styles.title}>{group.groupName}</h1>
+            </div>
 
-      <Tabs
-        ariaLabel="Group details"
-        tabs={[
-          {
-            key: 'child-groups',
-            title: 'Child groups',
-            content: (
-              <>
-                <div className={styles.tabActionsRow}>
-                  <SearchBar
-                    value={childGroupSearchInput}
-                    onChange={setChildGroupSearchInput}
-                    placeholder="Search child groups"
-                    ariaLabel="Search child groups"
-                    className={styles.searchBar}
-                  />
-                  <Button variant="primary" onClick={() => setCreateSubgroupOpen(true)}>
-                    Create child group
-                  </Button>
-                </div>
-                <DataTable
-                  ariaLabel="Child groups"
-                  columns={childGroupColumns}
-                  rows={filteredSubgroups}
-                  rowKey={(row) => row.id}
-                  isCompact
-                  isSearching={Boolean(childGroupSearchInput.trim())}
-                  emptyState={(
-                    <EmptyState
-                      title="No groups in this sub group"
-                      body="You haven't created any groups in this sub group."
-                      actionLabel="Create group"
-                      onAction={() => setCreateSubgroupOpen(true)}
-                    />
-                  )}
-                />
-              </>
-            ),
-          },
-          {
-            key: 'members',
-            title: 'Members',
-            content: (
-              <>
-                <div className={styles.tabActionsRowEnd}>
-                  <Button variant="primary" onClick={() => setAddMemberOpen(true)}>
-                    Add member
-                  </Button>
-                </div>
-                <DataTable
-                  ariaLabel="Members"
-                  columns={MEMBER_COLUMNS}
-                  rows={members}
-                  rowKey={(row) => row.userId}
-                  isCompact
-                  emptyState={(
-                    <EmptyState
-                      title="No users found"
-                      body="This group doesn't have any members yet."
-                      actionLabel="Add member"
-                      onAction={() => setAddMemberOpen(true)}
-                    />
-                  )}
-                />
-              </>
-            ),
-          },
-          {
-            key: 'role-mapping',
-            title: 'Role mapping',
-            content: (
-              <>
-                <div className={styles.tabActionsRow}>
-                  <SearchBar
-                    value={roleSearchInput}
-                    onChange={setRoleSearchInput}
-                    placeholder="Search roles"
-                    ariaLabel="Search roles"
-                    className={styles.searchBar}
-                  />
-                  <Button variant="primary" onClick={() => setAssignRoleTarget({ groupName: group.groupName })}>
-                    Assign role
-                  </Button>
-                </div>
-                <DataTable
-                  ariaLabel="Role mapping"
-                  columns={ROLE_COLUMNS}
-                  rows={filteredRoles}
-                  rowKey={(row) => row.id}
-                  isCompact
-                  isSearching={Boolean(roleSearchInput.trim())}
-                  emptyState={(
-                    <EmptyState
-                      title="No roles for this group"
-                      body="You haven't assigned any roles for this group. Assign a role to get started."
-                      actionLabel="Assign role"
-                      onAction={() => setAssignRoleTarget({ groupName: group.groupName })}
-                    />
-                  )}
-                />
-              </>
-            ),
-          },
-        ]}
-      />
+            <Tabs
+              ariaLabel="Group details"
+              tabs={[
+                {
+                  key: 'child-groups',
+                  title: 'Child groups',
+                  content: (
+                    <>
+                      <div className={styles.tabActionsRow}>
+                        <SearchBar
+                          value={childGroupSearchInput}
+                          onChange={setChildGroupSearchInput}
+                          placeholder="Search child groups"
+                          ariaLabel="Search child groups"
+                          className={styles.searchBar}
+                        />
+                        <Button variant="primary" onClick={() => setCreateSubgroupOpen(true)}>
+                          Create child group
+                        </Button>
+                      </div>
+                      <DataTable
+                        ariaLabel="Child groups"
+                        columns={childGroupColumns}
+                        rows={filteredSubgroups}
+                        rowKey={(row) => row.id}
+                        isCompact
+                        isSearching={Boolean(childGroupSearchInput.trim())}
+                        emptyState={(
+                          <EmptyState
+                            title="No groups in this sub group"
+                            body="You haven't created any groups in this sub group."
+                            actionLabel="Create group"
+                            onAction={() => setCreateSubgroupOpen(true)}
+                          />
+                        )}
+                      />
+                    </>
+                  ),
+                },
+                {
+                  key: 'members',
+                  title: 'Members',
+                  content: (
+                    <>
+                      <div className={styles.tabActionsRowEnd}>
+                        <Button variant="primary" onClick={() => setAddMemberOpen(true)}>
+                          Add member
+                        </Button>
+                      </div>
+                      <DataTable
+                        ariaLabel="Members"
+                        columns={MEMBER_COLUMNS}
+                        rows={members}
+                        rowKey={(row) => row.userId}
+                        isCompact
+                        emptyState={(
+                          <EmptyState
+                            title="No users found"
+                            body="This group doesn't have any members yet."
+                            actionLabel="Add member"
+                            onAction={() => setAddMemberOpen(true)}
+                          />
+                        )}
+                      />
+                    </>
+                  ),
+                },
+                {
+                  key: 'role-mapping',
+                  title: 'Role mapping',
+                  content: (
+                    <>
+                      <div className={styles.tabActionsRow}>
+                        <SearchBar
+                          value={roleSearchInput}
+                          onChange={setRoleSearchInput}
+                          placeholder="Search roles"
+                          ariaLabel="Search roles"
+                          className={styles.searchBar}
+                        />
+                        <Button variant="primary" onClick={() => setAssignRoleTarget({ groupName: group.groupName })}>
+                          Assign role
+                        </Button>
+                      </div>
+                      <DataTable
+                        ariaLabel="Role mapping"
+                        columns={ROLE_COLUMNS}
+                        rows={filteredRoles}
+                        rowKey={(row) => row.id}
+                        isCompact
+                        isSearching={Boolean(roleSearchInput.trim())}
+                        emptyState={(
+                          <EmptyState
+                            title="No roles for this group"
+                            body="You haven't assigned any roles for this group. Assign a role to get started."
+                            actionLabel="Assign role"
+                            onAction={() => setAssignRoleTarget({ groupName: group.groupName })}
+                          />
+                        )}
+                      />
+                    </>
+                  ),
+                },
+              ]}
+            />
 
-      {createSubgroupOpen && (
-        <CreateGroupModal
-          parentGroupName={group.groupName}
-          onClose={() => setCreateSubgroupOpen(false)}
-          onCreated={handleSubgroupCreated}
-        />
-      )}
+            {createSubgroupOpen && (
+              <CreateGroupModal
+                parentGroupName={group.groupName}
+                onClose={() => setCreateSubgroupOpen(false)}
+                onCreated={handleSubgroupCreated}
+              />
+            )}
 
-      {addMemberOpen && (
-        <AddMemberModal
-          groupName={group.groupName}
-          onClose={() => setAddMemberOpen(false)}
-          onAdded={handleMemberAdded}
-        />
-      )}
+            {addMemberOpen && (
+              <AddMemberModal
+                groupName={group.groupName}
+                onClose={() => setAddMemberOpen(false)}
+                onAdded={handleMemberAdded}
+              />
+            )}
 
-      {assignRoleTarget && (
-        <AssignRoleModal
-          target={assignRoleTarget}
-          onClose={() => setAssignRoleTarget(null)}
-          onAssigned={handleRoleAssigned}
-        />
-      )}
+            {assignRoleTarget && (
+              <AssignRoleModal
+                target={assignRoleTarget}
+                onClose={() => setAssignRoleTarget(null)}
+                onAssigned={handleRoleAssigned}
+              />
+            )}
 
-      {renameTarget && (
-        <RenameGroupModal
-          parentGroupName={renameTarget.parentGroupName}
-          groupName={renameTarget.groupName}
-          onClose={() => setRenameTarget(null)}
-          onRenamed={handleGroupRenamed}
-        />
-      )}
+            {renameTarget && (
+              <RenameGroupModal
+                parentGroupName={renameTarget.parentGroupName}
+                groupName={renameTarget.groupName}
+                onClose={() => setRenameTarget(null)}
+                onRenamed={handleGroupRenamed}
+              />
+            )}
 
-      {moveTarget && (
-        <MoveGroupModal
-          parentGroupName={moveTarget.parentGroupName}
-          groupName={moveTarget.groupName}
-          onClose={() => setMoveTarget(null)}
-          onMoved={handleGroupMoved}
-        />
-      )}
+            {moveTarget && (
+              <MoveGroupModal
+                parentGroupName={moveTarget.parentGroupName}
+                groupName={moveTarget.groupName}
+                onClose={() => setMoveTarget(null)}
+                onMoved={handleGroupMoved}
+              />
+            )}
 
-      {deleteTarget && (
-        <DeleteGroupModal
-          parentGroupName={deleteTarget.parentGroupName}
-          groupName={deleteTarget.groupName}
-          onClose={() => setDeleteTarget(null)}
-          onDeleted={handleGroupDeleted}
-        />
-      )}
+            {deleteTarget && (
+              <DeleteGroupModal
+                parentGroupName={deleteTarget.parentGroupName}
+                groupName={deleteTarget.groupName}
+                onClose={() => setDeleteTarget(null)}
+                onDeleted={handleGroupDeleted}
+              />
+            )}
+          </>
+        )}
+      </QueryState>
     </div>
   );
 }

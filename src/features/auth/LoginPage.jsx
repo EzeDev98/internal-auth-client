@@ -7,6 +7,7 @@ import Button from '../../shared/components/Button';
 import PasswordInput from '../../shared/components/PasswordInput';
 import AuthHeading from '../../shared/components/AuthHeading';
 import { useAuth } from '../../shared/lib/authContext';
+import { useToast } from '../../shared/lib/toastContext';
 import { credentialsSchema, otpSchema } from './loginSchema';
 import styles from './LoginPage.module.css';
 
@@ -16,6 +17,7 @@ import styles from './LoginPage.module.css';
 // collected here from the user rather than invented client-side.
 export default function LoginPage() {
   const { login, verifyOtp } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
   const [mfaRequired, setMfaRequired] = useState(false);
@@ -30,6 +32,7 @@ export default function LoginPage() {
       if (result.mfaRequired) {
         setMfaRequired(true);
       } else {
+        toast.success('Logged in');
         navigate('/', { replace: true });
       }
     } catch (err) {
@@ -41,6 +44,7 @@ export default function LoginPage() {
     setServerError(null);
     try {
       await verifyOtp(values);
+      toast.success('Logged in');
       navigate('/', { replace: true });
     } catch (err) {
       setServerError(err.message);

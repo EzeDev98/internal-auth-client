@@ -6,6 +6,7 @@ import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSec
 import Button from '../../shared/components/Button';
 import AuthHeading from '../../shared/components/AuthHeading';
 import { requestPasswordReset, verifyPasswordResetOtp } from './api';
+import { useToast } from '../../shared/lib/toastContext';
 import { phoneSchema, otpOnlySchema } from './forgotPasswordSchema';
 import styles from './ForgotPasswordPage.module.css';
 
@@ -18,6 +19,7 @@ import styles from './ForgotPasswordPage.module.css';
 // via router state (never the URL) rather than making the user copy/paste it.
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [serverError, setServerError] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
 
@@ -38,6 +40,7 @@ export default function ForgotPasswordPage() {
     setServerError(null);
     try {
       const result = await verifyPasswordResetOtp(phoneNumber, values.otp);
+      toast.success('Code verified');
       navigate('/reset-password', { state: { resetToken: result.resetToken } });
     } catch (err) {
       setServerError(err.message);

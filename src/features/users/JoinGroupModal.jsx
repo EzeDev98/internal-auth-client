@@ -8,6 +8,7 @@ import {
 } from '@patternfly/react-core';
 import { CheckIcon } from '@patternfly/react-icons';
 import Modal from '../../shared/components/Modal';
+import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import { listGroups, addGroupMember } from '../groups/api';
 import { joinGroupSchema } from './joinGroupSchema';
@@ -71,7 +72,9 @@ function GroupDropdown({
 export default function JoinGroupModal({ username, onClose, onJoined }) {
   const [serverError, setServerError] = useState(null);
 
-  const { data: groups, isLoading: groupsLoading } = useQuery({
+  const {
+    data: groups, isLoading: groupsLoading, isError: groupsIsError, error: groupsError, refetch: groupsRefetch,
+  } = useQuery({
     queryKey: ['groups', 'for-user-join'],
     queryFn: listGroups,
   });
@@ -110,20 +113,22 @@ export default function JoinGroupModal({ username, onClose, onJoined }) {
         {serverError && <Alert variant="danger" title={serverError} />}
 
         <FormGroup label="Group" isRequired fieldId="groupName">
-          <Controller
-            name="groupName"
-            control={control}
-            render={({ field }) => (
-              <GroupDropdown
-                value={field.value}
-                onChange={field.onChange}
-                groups={groups}
-                isLoading={groupsLoading}
-                isError={Boolean(errors.groupName)}
-              />
-            )}
-          />
-          {errors.groupName && <div className={styles.fieldError}>{errors.groupName.message}</div>}
+          <QueryState isLoading={groupsLoading} isError={groupsIsError} error={groupsError} onRetry={groupsRefetch}>
+            <Controller
+              name="groupName"
+              control={control}
+              render={({ field }) => (
+                <GroupDropdown
+                  value={field.value}
+                  onChange={field.onChange}
+                  groups={groups}
+                  isLoading={groupsLoading}
+                  isError={Boolean(errors.groupName)}
+                />
+              )}
+            />
+            {errors.groupName && <div className={styles.fieldError}>{errors.groupName.message}</div>}
+          </QueryState>
         </FormGroup>
       </Form>
     </Modal>

@@ -1,3 +1,73 @@
 .modal {
   border-radius: var(--radius);
 }
+
+/* UX smoothness plan Step 4c - CLOSE_DURATION_MS in Modal.jsx must stay in
+   step with the "closing"/"backdropClosing" animation durations below: the
+   component keeps the modal mounted for exactly that long after isOpen
+   goes false so this animation has time to finish before the real unmount
+   happens. */
+.opening {
+  animation: modalIn 160ms ease-out;
+}
+
+.closing {
+  animation: modalOut 150ms ease-in forwards;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.backdropOpening {
+  animation: backdropIn 160ms ease-out;
+}
+
+.backdropClosing {
+  animation: backdropOut 150ms ease-in forwards;
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening,
+  .closing,
+  .backdropOpening,
+  .backdropClosing {
+    animation: none;
+  }
+}

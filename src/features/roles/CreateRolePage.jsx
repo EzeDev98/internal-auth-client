@@ -7,6 +7,7 @@ import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Button from '../../shared/components/Button';
 import { createRole } from './api';
 import { createRoleSchema } from './createRoleSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './CreateRolePage.module.css';
 
 // Replaces CreateRoleModal - same POST /roles call (Step 8B), restyled as
@@ -18,6 +19,7 @@ import styles from './CreateRolePage.module.css';
 export default function CreateRolePage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
   const {
     register, handleSubmit, formState: { errors, isSubmitting },
@@ -32,6 +34,7 @@ export default function CreateRolePage() {
         roleName: values.roleName,
         description: values.description || undefined,
       });
+      toast.success('Role created');
       goToRoles();
     } catch (err) {
       setServerError(err.message);

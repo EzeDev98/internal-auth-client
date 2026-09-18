@@ -222,17 +222,9 @@ export default function ClientDetailPage() {
     }
   };
 
-  if (isLoading || isError) {
-    return (
-      <div className={styles.pageBody}>
-        <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch} />
-      </div>
-    );
-  }
+  const grantTypes = client?.grantTypes ?? [];
 
-  const grantTypes = client.grantTypes ?? [];
-
-  const settingsTab = (
+  const settingsTab = client && (
     <Form onSubmit={handleSubmit(onSubmit)} className={styles.formBody} isHorizontal>
       {serverError && <Alert variant="danger" isInline title={serverError} className={styles.serverError} />}
       {saved && <Alert variant="success" isInline title="Client application updated" className={styles.serverError} />}
@@ -321,60 +313,66 @@ export default function ClientDetailPage() {
 
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Clients', to: '/clients' }, { label: client.clientId }]} />
+      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+        {client && (
+          <>
+            <AppBreadcrumb items={[{ label: 'Clients', to: '/clients' }, { label: client.clientId }]} />
 
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>{client.name}</h1>
-          <p className={styles.meta}>
-            {`Created ${formatDate(client.createdAt)} · Updated ${formatDate(client.updatedAt)}`}
-          </p>
-        </div>
+            <div className={styles.headerRow}>
+              <div>
+                <h1 className={styles.title}>{client.name}</h1>
+                <p className={styles.meta}>
+                  {`Created ${formatDate(client.createdAt)} · Updated ${formatDate(client.updatedAt)}`}
+                </p>
+              </div>
 
-        <Controller
-          name="enabled"
-          control={control}
-          render={({ field }) => (
-            <Switch
-              id="enabled"
-              isChecked={field.value ?? false}
-              onChange={(_event, checked) => field.onChange(checked)}
-              label="Enabled"
-              className={styles.enabledSwitch}
+              <Controller
+                name="enabled"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    id="enabled"
+                    isChecked={field.value ?? false}
+                    onChange={(_event, checked) => field.onChange(checked)}
+                    label="Enabled"
+                    className={styles.enabledSwitch}
+                  />
+                )}
+              />
+            </div>
+
+            <Tabs
+              ariaLabel="Client details"
+              tabs={[{ key: 'settings', title: 'Settings', content: settingsTab }]}
             />
-          )}
-        />
-      </div>
 
-      <Tabs
-        ariaLabel="Client details"
-        tabs={[{ key: 'settings', title: 'Settings', content: settingsTab }]}
-      />
-
-      {isRotateConfirmOpen && (
-        <Modal
-          isOpen
-          onClose={closeRotateConfirm}
-          title="Regenerate client secret?"
-          footer={
-            <>
-              <Button variant="danger" onClick={confirmRotateSecret} isLoading={isRotating}>
-                Regenerate
-              </Button>
-              <Button variant="link" onClick={closeRotateConfirm} isDisabled={isRotating}>
-                Cancel
-              </Button>
-            </>
-          }
-        >
-          {rotateError && <Alert variant="danger" title={rotateError} />}
-          <p>
-            This generates a new client secret and replaces the stored one immediately.
-            The previous secret stops working right away - update anywhere this client is
-            configured with the new value.
-          </p>
-        </Modal>
-      )}
+            {isRotateConfirmOpen && (
+              <Modal
+                isOpen
+                onClose={closeRotateConfirm}
+                title="Regenerate client secret?"
+                footer={
+                  <>
+                    <Button variant="danger" onClick={confirmRotateSecret} isLoading={isRotating}>
+                      Regenerate
+                    </Button>
+                    <Button variant="link" onClick={closeRotateConfirm} isDisabled={isRotating}>
+                      Cancel
+                    </Button>
+                  </>
+                }
+              >
+                {rotateError && <Alert variant="danger" title={rotateError} />}
+                <p>
+                  This generates a new client secret and replaces the stored one immediately.
+                  The previous secret stops working right away - update anywhere this client is
+                  configured with the new value.
+                </p>
+              </Modal>
+            )}
+          </>
+        )}
+      </QueryState>
     </div>
   );
 }

@@ -66,30 +66,28 @@ export default function RoleDetailPage() {
     queryFn: () => getRole(id),
   });
 
-  if (isLoading || isError) {
-    return (
-      <div className={styles.pageBody}>
-        <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch} />
-      </div>
-    );
-  }
-
   return (
     <div className={styles.pageBody}>
-      <AppBreadcrumb items={[{ label: 'Roles', to: '/roles' }, { label: role.roleName }]} />
-      <h1 className={styles.title}>{role.roleName}</h1>
+      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
+        {role && (
+          <>
+            <AppBreadcrumb items={[{ label: 'Roles', to: '/roles' }, { label: role.roleName }]} />
+            <h1 className={styles.title}>{role.roleName}</h1>
 
-      <Tabs
-        ariaLabel="Role details"
-        tabs={[
-          { key: 'details', title: 'Details', content: <DetailsTab role={role} /> },
-          {
-            key: 'users-in-role',
-            title: 'Users in role',
-            content: <UsersInRoleTab users={role.usersInRole ?? []} />,
-          },
-        ]}
-      />
+            <Tabs
+              ariaLabel="Role details"
+              tabs={[
+                { key: 'details', title: 'Details', content: <DetailsTab role={role} /> },
+                {
+                  key: 'users-in-role',
+                  title: 'Users in role',
+                  content: <UsersInRoleTab users={role.usersInRole ?? []} />,
+                },
+              ]}
+            />
+          </>
+        )}
+      </QueryState>
     </div>
   );
 }

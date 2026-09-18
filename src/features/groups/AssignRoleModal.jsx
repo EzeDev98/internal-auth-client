@@ -8,10 +8,12 @@ import {
 } from '@patternfly/react-core';
 import { CheckIcon } from '@patternfly/react-icons';
 import Modal from '../../shared/components/Modal';
+import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import { listRoles } from '../roles/api';
 import { assignRoleToGroup, assignRoleToSubgroup } from './api';
 import { assignRoleSchema } from './assignRoleSchema';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './AssignRoleModal.module.css';
 
 // Same reasoning as UsersListPage's StatusFilterDropdown and CreateUserPage's
@@ -72,8 +74,11 @@ function RoleDropdown({ value, onChange, roles, isLoading, isError }) {
 // rather than asking the admin to type a raw role name from memory.
 export default function AssignRoleModal({ target, onClose, onAssigned }) {
   const [serverError, setServerError] = useState(null);
+  const toast = useToast();
 
-  const { data: roles, isLoading: rolesLoading } = useQuery({
+  const {
+    data: roles, isLoading: rolesLoading, isError: rolesIsError, error: rolesError, refetch: rolesRefetch,
+  } = useQuery({
     queryKey: ['roles', 'for-group-assign'],
     queryFn: listRoles,
   });
@@ -90,6 +95,7 @@ export default function AssignRoleModal({ target, onClose, onAssigned }) {
       } else {
         await assignRoleToGroup(target.groupName, { roleName: values.roleName });
       }
+      toast.success(`Role "${values.roleName}" assigned to ${targetLabel}.`);
       onAssigned();
     } catch (err) {
       setServerError(err.message);
@@ -118,20 +124,22 @@ export default function AssignRoleModal({ target, onClose, onAssigned }) {
         {serverError && <Alert variant="danger" title={serverError} />}
 
         <FormGroup label="Role" isRequired fieldId="roleName">
-          <Controller
-            name="roleName"
-            control={control}
-            render={({ field }) => (
-              <RoleDropdown
-                value={field.value}
-                onChange={field.onChange}
-                roles={roles}
-                isLoading={rolesLoading}
-                isError={Boolean(errors.roleName)}
-              />
-            )}
-          />
-          {errors.roleName && <div className={styles.fieldError}>{errors.roleName.message}</div>}
+          <QueryState isLoading={rolesLoading} isError={rolesIsError} error={rolesError} onRetry={rolesRefetch}>
+            <Controller
+              name="roleName"
+              control={control}
+              render={({ field }) => (
+                <RoleDropdown
+                  value={field.value}
+                  onChange={field.onChange}
+                  roles={roles}
+                  isLoading={rolesLoading}
+                  isError={Boolean(errors.roleName)}
+                />
+              )}
+            />
+            {errors.roleName && <div className={styles.fieldError}>{errors.roleName.message}</div>}
+          </QueryState>
         </FormGroup>
       </Form>
     </Modal>

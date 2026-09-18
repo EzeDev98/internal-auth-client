@@ -6,6 +6,7 @@ import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
 import { listUsers } from '../users/api';
 import { addGroupMember } from './api';
+import { useToast } from '../../shared/lib/toastContext';
 import styles from './AddMemberModal.module.css';
 
 // Members tab "Add member" button - existing POST /groups/{groupName}/users
@@ -27,6 +28,7 @@ export default function AddMemberModal({ groupName, onClose, onAdded }) {
   const [confirmTarget, setConfirmTarget] = useState(null); // null | username
   const [confirmError, setConfirmError] = useState(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const toast = useToast();
 
   const trimmedSearch = searchInput.trim();
   const isSearching = Boolean(trimmedSearch);
@@ -56,6 +58,7 @@ export default function AddMemberModal({ groupName, onClose, onAdded }) {
     setIsConfirming(true);
     try {
       await addGroupMember(groupName, { username: confirmTarget });
+      toast.success(`Added ${confirmTarget} to "${groupName}".`);
       onAdded();
     } catch (err) {
       setConfirmError(err.message);
