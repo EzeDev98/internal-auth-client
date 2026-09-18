@@ -46,6 +46,25 @@ async function main() {
   app.listen(env.port, () => {
     console.log(`[bff] listening on port ${env.port}`);
   });
+
+  startKeepAlive();
+}
+
+// Render spins a free web service down after a period with no inbound
+// requests. This self-pings the service's own public URL every 3 minutes
+// so Render keeps seeing traffic - mirrors internal-auth-server's own
+// KeepAliveJob. RENDER_EXTERNAL_URL is injected automatically by Render
+// (no dashboard env var to set), so this is a no-op anywhere else (local
+// dev, CI) rather than pinging localhost.
+function startKeepAlive() {
+  const selfUrl = process.env.RENDER_EXTERNAL_URL;
+  if (!selfUrl) return;
+
+  setInterval(() => {
+    fetch(`${selfUrl}/bff/health`).catch((err) => {
+      console.warn('[keep-alive] self-ping failed', err.message);
+    });
+  }, 180_000);
 }
 
 main().catch((err) => {
