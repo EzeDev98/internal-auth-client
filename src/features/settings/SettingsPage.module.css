@@ -35,19 +35,8 @@
   margin-bottom: 12px;
 }
 
-.dangerZone {
+.dangerZoneTrigger {
   margin-top: 32px;
-  padding: 16px;
-  border: 1px solid var(--pf-t--global--text--color--status--danger--default);
-  border-radius: 6px;
-}
-
-.dangerZoneTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
-  color: var(--pf-t--global--text--color--status--danger--default);
-  margin: 0 0 4px;
 }
 
 .dangerZoneDescription {

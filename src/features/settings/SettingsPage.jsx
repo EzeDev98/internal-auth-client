@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Checkbox, TextInput } from '@patternfly/react-core';
+import {
+  Alert, Checkbox, TextInput, Tooltip,
+} from '@patternfly/react-core';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
@@ -130,16 +132,26 @@ export default function SettingsPage() {
         />
       </QueryState>
 
-      <div className={styles.dangerZone}>
-        <h2 className={styles.dangerZoneTitle}>Danger zone</h2>
-        <p className={styles.dangerZoneDescription}>
-          Wipes every user, session, and app-scoped record across SyncPoint, Notare, and
-          internal-auth itself, not just this app. SyncPoint&apos;s and Notare&apos;s own admin
-          wipe buttons keep working on their own - this is the one that runs all three together.
-        </p>
-        <Button variant="danger" onClick={() => setIsWipeModalOpen(true)}>
-          Wipe everything
-        </Button>
+      <div className={styles.dangerZoneTrigger}>
+        <Tooltip
+          position="bottom"
+          content={(
+            <>
+              <strong>Danger zone</strong>
+              <br />
+              Wipes every user, session, and app-scoped record across SyncPoint, Notare, and
+              internal-auth itself, not just this app. SyncPoint&apos;s and Notare&apos;s own
+              admin wipe buttons keep working on their own - this is the one that runs all
+              three together.
+            </>
+          )}
+        >
+          <span>
+            <Button variant="danger" onClick={() => setIsWipeModalOpen(true)}>
+              Wipe everything
+            </Button>
+          </span>
+        </Tooltip>
       </div>
 
       {isConfirmOpen && (
