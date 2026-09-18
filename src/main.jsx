@@ -6,6 +6,8 @@ import './shared/tokens.css'
 import App from './app/App.jsx'
 import { AuthProvider } from './shared/lib/authContext.jsx'
 import { ToastProvider } from './shared/lib/toastContext.jsx'
+import UpdatePrompt from './shared/components/UpdatePrompt.jsx'
+import InstallPrompt from './shared/components/InstallPrompt.jsx'
 
 const queryClient = new QueryClient()
 
@@ -18,5 +20,7 @@ createRoot(document.getElementById('root')).render(
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
+    <UpdatePrompt />
+    <InstallPrompt />
   </StrictMode>,
 )
