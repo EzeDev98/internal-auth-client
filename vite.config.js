@@ -44,15 +44,16 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon-32.png', 'favicon-64.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'WM Internal Auth Admin Console',
-        short_name: 'Auth Admin',
+        name: 'InternalAuth',
+        short_name: 'InternalAuth',
         start_url: '/',
         display: 'standalone',
         theme_color: '#0f1b3d',
-        background_color: '#0f1b3d',
+        background_color: '#FFFFFF',
         icons: [
           { src: 'icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
       workbox: {
