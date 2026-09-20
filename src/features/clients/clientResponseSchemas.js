@@ -38,5 +38,8 @@ export const clientDetailSchema = z
     createdAt: z.string(),
     updatedAt: z.string().nullable(),
     clientSecret: z.string().nullable().optional(),
+    refreshTokenRotationEnabled: z.boolean().optional(),
+    refreshTokenTtlDays: z.number().nullable().optional(),
+    refreshTokenMaxLifetimeDays: z.number().nullable().optional(),
   })
   .passthrough();

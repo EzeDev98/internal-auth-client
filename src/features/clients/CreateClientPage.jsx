@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form, FormGroup, TextInput, TextArea, Checkbox, Alert, ClipboardCopy,
@@ -12,6 +12,8 @@ import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { createClient } from './api';
 import { createClientSchema } from './createClientSchema';
+import RefreshTokenSettingsFields from './RefreshTokenSettingsFields';
+import { buildRefreshTokenPayload, DEFAULT_REFRESH_TOKEN_TTL_DAYS } from './refreshTokenSettings';
 import styles from './CreateClientPage.module.css';
 
 // Same three grant types the backend actually accepts
@@ -109,8 +111,15 @@ export default function CreateClientPage() {
     register, handleSubmit, control, trigger, formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createClientSchema),
-    defaultValues: { grantTypes: ['authorization_code', 'refresh_token'] },
+    defaultValues: {
+      grantTypes: ['authorization_code', 'refresh_token'],
+      persistentRefreshToken: false,
+      refreshTokenTtlDays: String(DEFAULT_REFRESH_TOKEN_TTL_DAYS),
+      refreshTokenMaxLifetimeDays: '',
+      revokePriorSessionsOnLogin: true,
+    },
   });
+  const isPersistent = useWatch({ control, name: 'persistentRefreshToken' });
 
   const onSubmit = async (values) => {
     setServerError(null);
@@ -122,6 +131,7 @@ export default function CreateClientPage() {
         redirectUris: splitList(values.redirectUris),
         scopes: splitList(values.scopes),
         grantTypes: values.grantTypes,
+        ...buildRefreshTokenPayload(values),
       });
       setCreated(result);
     } catch (err) {
@@ -199,7 +209,7 @@ export default function CreateClientPage() {
         <WizardStep
           name="Capability config"
           id="capability"
-          footer={<StepFooter validate={() => trigger('grantTypes')} />}
+          footer={<StepFooter validate={() => trigger(['grantTypes', 'persistentRefreshToken', 'refreshTokenTtlDays', 'refreshTokenMaxLifetimeDays'])} />}
         >
           <Form className={styles.stepBody} isHorizontal>
             <FormGroup
@@ -257,6 +267,13 @@ export default function CreateClientPage() {
                 )}
               />
             </FormGroup>
+
+            <RefreshTokenSettingsFields
+              control={control}
+              register={register}
+              errors={errors}
+              isPersistent={isPersistent}
+            />
           </Form>
         </WizardStep>
 

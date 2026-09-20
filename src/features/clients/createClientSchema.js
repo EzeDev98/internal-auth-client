@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { refreshTokenFields, validateRefreshTokenFields } from './refreshTokenSettings';
 
 // Matches CreateClientApplicationRequest: only clientId and name are
 // required server-side (ClientApplicationServiceImpl#createClient).
@@ -9,4 +10,5 @@ export const createClientSchema = z.object({
   redirectUris: z.string().trim().optional(),
   scopes: z.string().trim().optional(),
   grantTypes: z.array(z.string()).optional(),
-});
+  ...refreshTokenFields,
+}).superRefine(validateRefreshTokenFields);

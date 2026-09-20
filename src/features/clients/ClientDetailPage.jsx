@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Form, FormGroup, TextInput, TextArea, Checkbox, Switch, Alert, Tooltip,
+  FormHelperText, HelperText, HelperTextItem,
   InputGroup, InputGroupItem,
 } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon, CopyIcon } from '@patternfly/react-icons';
@@ -15,13 +16,13 @@ import Tabs from '../../shared/components/Tabs';
 import Modal from '../../shared/components/Modal';
 import { getClient, updateClient, rotateSecret } from './api';
 import { updateClientSchema } from './updateClientSchema';
+import RefreshTokenSettingsFields from './RefreshTokenSettingsFields';
+import { buildRefreshTokenPayload } from './refreshTokenSettings';
 import styles from './ClientDetailPage.module.css';
 
 // Same fixed list CreateClientPage shows in its "Authentication flow" grid
-// (the only three grantTypes the backend accepts). Reused here read-only,
-// checked according to what this client actually has - grantTypes isn't
-// editable post-creation (UpdateClientApplicationRequest's own Javadoc),
-// so these render as disabled checkboxes rather than an editable field.
+// (the only three grantTypes the backend accepts). Editable here too; the server
+// rejects removing refresh_token while persistent refresh tokens are on.
 const GRANT_TYPE_OPTIONS = [
   { value: 'authorization_code', label: 'Authorization code', help: 'Lets this client obtain tokens via the OAuth 2.0 authorization code flow.' },
   { value: 'refresh_token', label: 'Refresh token', help: 'Lets this client request a refresh token alongside its access token.' },
@@ -157,6 +158,8 @@ export default function ClientDetailPage() {
   const {
     register, handleSubmit, control, reset, formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(updateClientSchema) });
+  const isPersistent = useWatch({ control, name: 'persistentRefreshToken' });
+  const watchedGrantTypes = useWatch({ control, name: 'grantTypes' });
 
   const resetToClient = (current) => {
     if (!current) return;
@@ -166,6 +169,11 @@ export default function ClientDetailPage() {
       redirectUris: joinList(current.redirectUris),
       scopes: joinList(current.scopes),
       enabled: current.enabled,
+      grantTypes: current.grantTypes ?? [],
+      persistentRefreshToken: current.refreshTokenRotationEnabled === false,
+      refreshTokenTtlDays: current.refreshTokenTtlDays != null ? String(current.refreshTokenTtlDays) : '',
+      refreshTokenMaxLifetimeDays: current.refreshTokenMaxLifetimeDays != null ? String(current.refreshTokenMaxLifetimeDays) : '',
+      revokePriorSessionsOnLogin: current.revokePriorSessionsOnLogin ?? true,
     });
     setServerError(null);
     setSaved(false);
@@ -186,6 +194,8 @@ export default function ClientDetailPage() {
         redirectUris: splitList(values.redirectUris),
         scopes: splitList(values.scopes),
         enabled: values.enabled,
+        grantTypes: values.grantTypes,
+        ...buildRefreshTokenPayload(values),
       });
       queryClient.setQueryData(['clients', clientId], updated);
       queryClient.invalidateQueries({ queryKey: ['clients'] });
@@ -222,7 +232,7 @@ export default function ClientDetailPage() {
     }
   };
 
-  const grantTypes = client?.grantTypes ?? [];
+  const grantTypes = watchedGrantTypes ?? client?.grantTypes ?? [];
 
   const settingsTab = client && (
     <Form onSubmit={handleSubmit(onSubmit)} className={styles.formBody} isHorizontal>
@@ -273,22 +283,51 @@ export default function ClientDetailPage() {
       <FormGroup
         label="Authentication flow"
         fieldId="grantTypes"
-        labelHelp={<HelpTooltip content="Set at creation. Not editable here." />}
+        labelHelp={<HelpTooltip content="Removing a flow does not sign out tokens already issued. Refresh token can't be removed while Persistent refresh token is on." />}
       >
-        <div className={styles.grantTypeGrid}>
-          {GRANT_TYPE_OPTIONS.map((option) => (
-            <div key={option.value} className={styles.grantTypeItem}>
-              <Checkbox
-                id={`grantType-${option.value}`}
-                label={option.label}
-                isChecked={grantTypes.includes(option.value)}
-                isDisabled
-              />
-              <HelpTooltip content={option.help} />
+        <Controller
+          name="grantTypes"
+          control={control}
+          render={({ field }) => (
+            <div className={styles.grantTypeGrid}>
+              {GRANT_TYPE_OPTIONS.map((option) => (
+                <div key={option.value} className={styles.grantTypeItem}>
+                  <Checkbox
+                    id={`grantType-${option.value}`}
+                    label={option.label}
+                    isChecked={(field.value ?? []).includes(option.value)}
+                    onChange={(_event, checked) => {
+                      const current = field.value ?? [];
+                      field.onChange(
+                        checked
+                          ? [...current, option.value]
+                          : current.filter((v) => v !== option.value)
+                      );
+                    }}
+                  />
+                  <HelpTooltip content={option.help} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        />
+        {errors.grantTypes?.message && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="error">{errors.grantTypes.message}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
       </FormGroup>
+
+      <RefreshTokenSettingsFields
+        control={control}
+        register={register}
+        errors={errors}
+        isPersistent={isPersistent}
+        isDisabled={!grantTypes.includes('refresh_token') && !isPersistent}
+        disabledReason="Enable the Refresh token authentication flow above to use persistent refresh tokens."
+      />
 
       <h2 className={styles.subheading}>Access settings</h2>
 
