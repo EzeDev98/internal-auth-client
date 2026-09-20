@@ -175,14 +175,19 @@ export default function ClientDetailPage() {
       refreshTokenMaxLifetimeDays: current.refreshTokenMaxLifetimeDays != null ? String(current.refreshTokenMaxLifetimeDays) : '',
       revokePriorSessionsOnLogin: current.revokePriorSessionsOnLogin ?? true,
     });
-    setServerError(null);
-    setSaved(false);
   };
 
   useEffect(() => {
     resetToClient(client);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
+
+  // Fields that fail validation can be scrolled out of view on this long form,
+  // so say so next to the Save button instead of doing nothing.
+  const onInvalid = () => {
+    setSaved(false);
+    setServerError('Some fields are invalid. Fix the highlighted fields and save again.');
+  };
 
   const onSubmit = async (values) => {
     setServerError(null);
@@ -235,10 +240,7 @@ export default function ClientDetailPage() {
   const grantTypes = watchedGrantTypes ?? client?.grantTypes ?? [];
 
   const settingsTab = client && (
-    <Form onSubmit={handleSubmit(onSubmit)} className={styles.formBody} isHorizontal>
-      {serverError && <Alert variant="danger" isInline title={serverError} className={styles.serverError} />}
-      {saved && <Alert variant="success" isInline title="Client application updated" className={styles.serverError} />}
-
+    <Form onSubmit={handleSubmit(onSubmit, onInvalid)} className={styles.formBody} isHorizontal>
       <h2 className={styles.subheading}>General settings</h2>
 
       <FormGroup label="Client ID" fieldId="clientId">
@@ -339,11 +341,18 @@ export default function ClientDetailPage() {
         <TextArea id="scopes" {...register('scopes')} placeholder="One per line, or comma-separated" />
       </FormGroup>
 
+      {serverError && <Alert variant="danger" isInline title={serverError} className={styles.serverError} />}
+      {saved && <Alert variant="success" isInline title="Client application updated" className={styles.serverError} />}
+
       <div className={styles.actions}>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
           Save
         </Button>
-        <Button type="button" variant="link" onClick={() => resetToClient(client)}>
+        <Button type="button" variant="link" onClick={() => {
+          resetToClient(client);
+          setServerError(null);
+          setSaved(false);
+        }}>
           Revert
         </Button>
       </div>
