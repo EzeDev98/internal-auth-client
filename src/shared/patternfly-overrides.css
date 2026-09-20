@@ -105,3 +105,9 @@ a:visited {
 .pf-v6-c-menu {
   border-radius: var(--radius) !important;
 }
+
+/* Every Alert (inline banners and the toasts from toastContext) uses the same
+   4px corner radius, instead of PatternFly's larger default. */
+.pf-v6-c-alert {
+  border-radius: 4px !important;
+}

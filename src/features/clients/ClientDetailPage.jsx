@@ -14,6 +14,7 @@ import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Tabs from '../../shared/components/Tabs';
 import Modal from '../../shared/components/Modal';
+import { useToast } from '../../shared/lib/toastContext';
 import { getClient, updateClient, rotateSecret } from './api';
 import { updateClientSchema } from './updateClientSchema';
 import RefreshTokenSettingsFields from './RefreshTokenSettingsFields';
@@ -142,7 +143,7 @@ export default function ClientDetailPage() {
   const { clientId } = useParams();
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState(null);
-  const [saved, setSaved] = useState(false);
+  const toast = useToast();
 
   const {
     data: client, isLoading, isError, error, refetch,
@@ -185,13 +186,11 @@ export default function ClientDetailPage() {
   // Fields that fail validation can be scrolled out of view on this long form,
   // so say so next to the Save button instead of doing nothing.
   const onInvalid = () => {
-    setSaved(false);
     setServerError('Some fields are invalid. Fix the highlighted fields and save again.');
   };
 
   const onSubmit = async (values) => {
     setServerError(null);
-    setSaved(false);
     try {
       const updated = await updateClient(clientId, {
         name: values.name,
@@ -204,7 +203,7 @@ export default function ClientDetailPage() {
       });
       queryClient.setQueryData(['clients', clientId], updated);
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      setSaved(true);
+      toast.success('Client application updated');
     } catch (err) {
       setServerError(err.message);
     }
@@ -342,7 +341,6 @@ export default function ClientDetailPage() {
       </FormGroup>
 
       {serverError && <Alert variant="danger" isInline title={serverError} className={styles.serverError} />}
-      {saved && <Alert variant="success" isInline title="Client application updated" className={styles.serverError} />}
 
       <div className={styles.actions}>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
@@ -351,7 +349,6 @@ export default function ClientDetailPage() {
         <Button type="button" variant="link" onClick={() => {
           resetToClient(client);
           setServerError(null);
-          setSaved(false);
         }}>
           Revert
         </Button>
