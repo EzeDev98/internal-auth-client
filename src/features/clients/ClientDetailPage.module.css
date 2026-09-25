@@ -121,3 +121,19 @@
   gap: 8px;
   margin-top: 24px;
 }
+
+.regenerateButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* On phones, drop to icon-only so the client-secret input above gets the
+   width back to show more of the actual secret value. Label stays in the
+   DOM (via aria-label on the button) so it's still announced by screen
+   readers even though it's visually hidden here. */
+@media (max-width: 767px) {
+  .regenerateLabel {
+    display: none;
+  }
+}

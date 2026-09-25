@@ -8,7 +8,9 @@ import {
   FormHelperText, HelperText, HelperTextItem,
   InputGroup, InputGroupItem,
 } from '@patternfly/react-core';
-import { EyeIcon, EyeSlashIcon, CopyIcon } from '@patternfly/react-icons';
+import {
+  EyeIcon, EyeSlashIcon, CopyIcon, SyncAltIcon,
+} from '@patternfly/react-icons';
 import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
@@ -104,8 +106,11 @@ function SecretField({ value, onRegenerate }) {
           type="button"
           variant="control"
           onClick={onRegenerate}
+          aria-label="Regenerate secret"
+          className={styles.regenerateButton}
         >
-          Regenerate secret
+          <SyncAltIcon />
+          <span className={styles.regenerateLabel}>Regenerate secret</span>
         </Button>
       </InputGroupItem>
     </InputGroup>

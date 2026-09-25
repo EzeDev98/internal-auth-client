@@ -76,6 +76,17 @@ export default function DataTable({
   emptyState,
   isSearching = false,
   isCompact = false,
+  // Opt-in alternative to PatternFly's default card-stacking on narrow
+  // screens (Th/Td dataLabel + container-query grid mode). Meant for
+  // tables with a couple of short columns (e.g. Name/Description) where
+  // stacking into label:value pairs is overkill - renders as a plain
+  // fixed-layout 2-column table instead, at every width. Also needed
+  // whenever a column uses the 'truncate' or 'nowrap' modifier: those
+  // force white-space: nowrap, which can blow the table's rendered
+  // width past the grid mode's own container-query breakpoint and
+  // force horizontal scrolling instead of stacking - simpleTable resets
+  // that so long values wrap within the column instead.
+  simple = false,
 }) {
   const getSortParams = (columnIndex) => ({
     sortBy,
@@ -94,7 +105,12 @@ export default function DataTable({
   return (
     <div className={styles.wrapper}>
       <div className={scrollClassName} ref={scrollRef}>
-        <Table aria-label={ariaLabel} className={styles.table} variant={isCompact ? 'compact' : undefined}>
+        <Table
+          aria-label={ariaLabel}
+          className={simple ? `${styles.table} ${styles.simpleTable}` : styles.table}
+          variant={isCompact ? 'compact' : undefined}
+          gridBreakPoint={simple ? '' : undefined}
+        >
         <Thead>
           <Tr>
             {columns.map((column, index) => (

@@ -37,6 +37,17 @@
   border: none;
 }
 
+/* PatternFly also draws a divider on the scroll buttons themselves
+   (.pf-v6-c-tabs__scroll-button::before) - a border-inline-start on the
+   right button, border-inline-end on the left one - to separate each
+   arrow from the tab list it scrolls. Removed per request, same as the
+   tab-strip's own border above; applies to both scroll buttons app-wide
+   wherever this shared Tabs component overflows (User details, Group
+   details). */
+.tabs :global(.pf-v6-c-tabs__scroll-button)::before {
+  border: none;
+}
+
 .panel {
   padding: 16px 0;
 }

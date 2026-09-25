@@ -215,7 +215,7 @@ function OverviewTab({ user, username, clientId }) {
 
 const ROLE_COLUMNS_BASE = [
   {
-    key: 'roleName', label: 'Name', width: 20, modifier: 'nowrap', render: (row) => row.roleName,
+    key: 'roleName', label: 'Name', width: 35, modifier: 'nowrap', render: (row) => row.roleName,
   },
   { key: 'description', label: 'Description', modifier: 'truncate', render: (row) => row.description || '—' },
 ];
@@ -410,6 +410,7 @@ function RolesTab({ username }) {
         rows={roles}
         rowKey={(row) => row.roleId}
         isCompact
+        simple
         emptyState={(
           <EmptyState
             title="No roles assigned"
@@ -559,8 +560,10 @@ function CredentialsTab({ username, clientId }) {
 }
 
 const GROUP_COLUMNS_BASE = [
-  { key: 'groupName', label: 'Name', render: (row) => row.groupName },
-  { key: 'description', label: 'Description', render: (row) => row.description || '—' },
+  {
+    key: 'groupName', label: 'Name', width: 35, modifier: 'nowrap', render: (row) => row.groupName,
+  },
+  { key: 'description', label: 'Description', modifier: 'truncate', render: (row) => row.description || '—' },
 ];
 
 // Step 5 - Permission Groups tab, backed by the existing GET
@@ -757,6 +760,7 @@ function PermissionGroupsTab({ username }) {
         rows={groups}
         rowKey={(row) => row.groupId}
         isCompact
+        simple
         emptyState={(
           <EmptyState
             title="No permission groups"

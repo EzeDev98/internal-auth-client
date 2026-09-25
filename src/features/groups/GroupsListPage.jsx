@@ -32,11 +32,14 @@ export default function GroupsListPage() {
       {
         key: 'groupName',
         label: 'Group name',
+        width: 35,
+        modifier: 'nowrap',
         render: (row) => <Link to={`/groups/${row.id}`}>{row.groupName}</Link>,
       },
       {
         key: 'description',
         label: 'Description',
+        modifier: 'truncate',
         render: (row) => row.description ?? '',
       },
       {
@@ -104,6 +107,7 @@ export default function GroupsListPage() {
           emptyStateMessage="No groups found."
           isSearching={Boolean(searchInput.trim())}
           isCompact
+          simple
         />
       </QueryState>
 

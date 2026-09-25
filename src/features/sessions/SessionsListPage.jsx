@@ -6,7 +6,6 @@ import {
 import { CheckIcon } from '@patternfly/react-icons';
 import DataTable from '../../shared/components/DataTable';
 import QueryState from '../../shared/components/QueryState';
-import ActionsMenu from '../../shared/components/ActionsMenu';
 import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
@@ -211,18 +210,14 @@ export default function SessionsListPage() {
       label: '',
       isAction: true,
       render: (row) => (
-        <ActionsMenu
-          ariaLabel={`Actions for ${row.username ?? 'session'}`}
-          items={[
-            {
-              key: 'revoke',
-              label: 'Revoke',
-              isDanger: true,
-              isDisabled: !row.active || !row.clientId,
-              onClick: () => setRevokeTarget({ username: row.username, clientId: row.clientId }),
-            },
-          ]}
-        />
+        <Button
+          variant="danger"
+          size="sm"
+          isDisabled={!row.active || !row.clientId}
+          onClick={() => setRevokeTarget({ username: row.username, clientId: row.clientId })}
+        >
+          Revoke
+        </Button>
       ),
     },
   ];

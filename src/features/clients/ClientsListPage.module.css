@@ -42,6 +42,11 @@
   color: inherit !important;
   padding: 0 !important;
   font-weight: var(--weight-medium);
+  /* On the mobile stacked-row grid (DataTable.module.css), grid items
+     default to justify-items: stretch, and Badge's inline-flex becomes
+     a full-width flex box centering its text - pin it to the start of
+     the value column so it lines up with the rest of the rows' values. */
+  justify-self: start;
 }
 
 /* Responsive plan - iPad Step 4b-clients - hide the Type column at
@@ -81,6 +86,7 @@
 
   .searchBar {
     width: 100%;
+    flex: none;
     /* Responsive plan - grows the search bar itself at phone width,
        rather than shrinking the button to match it - SearchBar.module.css's
        .searchGroup has a fixed 36px height everywhere else in the app
@@ -90,7 +96,7 @@
        node), so it can override height here without touching the shared
        component. !important to be safe against .searchGroup's own fixed
        height, same convention already used on .statusToggle in this file. */
-    height: 44px !important;
+    height: 36px !important;
   }
 
   .actionsRow :global(.pf-v6-c-button) {
