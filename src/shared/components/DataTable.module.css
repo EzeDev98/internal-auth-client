@@ -40,3 +40,48 @@
 .pagination {
   margin-top: 8px;
 }
+
+/* Responsive plan - iPad Step 4a - horizontal-scroll container for the
+   table itself, not .wrapper (which also holds Pagination below it - we
+   don't want pagination scrolling sideways along with the table). At this
+   width the table drops its desktop full-bleed trick (margin: 0 -24px on
+   .table) and .tableScroll takes over that same bleed instead, now paired
+   with overflow-x so excess column width scrolls inside the page rather
+   than blowing out the page's own horizontal scrollbar.
+   max-width: 1024px also covers every phone width, so the Mobile phase's
+   Step 4 inherits this for free - don't redo it there, only verify touch/
+   momentum scrolling feels right (Mobile Step 4a). */
+@media (max-width: 1024px) {
+  .tableScroll {
+    overflow-x: auto;
+    margin: 0 -24px;
+  }
+
+  .table {
+    margin: 0;
+    width: 100%;
+    min-width: max-content;
+  }
+}
+
+/* Responsive plan - Mobile Step 4a - edge-fade classes, applied by
+   DataTable.jsx's useScrollFade hook only when there's real overflow to
+   hint at. Scoped to <=767px deliberately - iPad Step 4a never asked
+   for this affordance, so the rail-width behavior (768-1024px) is left
+   untouched even though the classes would work there too. */
+@media (max-width: 767px) {
+  .tableScroll.canScrollRight {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+  }
+
+  .tableScroll.canScrollLeft {
+    -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+  }
+
+  .tableScroll.canScrollLeft.canScrollRight {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+  }
+}

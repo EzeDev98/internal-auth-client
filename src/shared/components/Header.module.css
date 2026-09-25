@@ -26,6 +26,30 @@
   font-weight: var(--weight-medium);
 }
 
+/* Responsive plan - iPad Step 2b - nav rail toggle button. Hidden by
+   default (desktop); shown only at <=1024px, matching Sidebar.module.css's
+   rail breakpoint (iPad Step 2a) - above that width there's nothing to
+   toggle, since the sidebar is always full width there. */
+.navToggle {
+  display: none;
+  margin-right: 12px;
+  color: var(--sidebar-text-active);
+}
+
+.navToggle:hover,
+.navToggle:focus,
+.navToggle:focus-visible {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1024px) {
+  .navToggle {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
 .toggle {
   color: var(--sidebar-text-active);
   font-family: var(--font-body);
@@ -72,4 +96,20 @@
   width: 1em;
   height: 1em;
   vertical-align: middle;
+}
+
+/* Responsive plan - Mobile Step 2c - drop .brandText below 480px (iPad
+   Step 2b deliberately left it in place - see Header.jsx comment).
+   Verified first, not assumed: at 375px the left side alone (navToggle
+   ~36px + 12px margin + 10px gap + logo 32px + 10px gap + "Internal
+   Auth" ~90px) runs to roughly 190px, and the account toggle on the
+   right (username text + caret + the avatar's existing 40px margin +
+   36px avatar) runs to roughly another 190px - well past the ~327px
+   usable width at this header's 24px side padding, even before
+   considering the 480-767px range this query also covers. Dropping it
+   recovers ~100px, enough for this phase's 375/390 target widths. */
+@media (max-width: 480px) {
+  .brandText {
+    display: none;
+  }
 }

@@ -82,3 +82,66 @@
   font-size: var(--text-sm);
   margin-bottom: 12px;
 }
+
+/* Responsive plan - Mobile Step 3a - stack .filters (this page's
+   equivalent of .actionsRow - see UsersListPage.jsx) below 768px.
+   .toolbar isn't touched - single child, nothing to stack. Three items
+   here, not two: search, .statusToggle, and the Create button, which
+   (like the other list pages) gets no className from UsersListPage.jsx
+   so it's targeted via PatternFly's emitted class, scoped to .filters
+   where it's the only button. */
+@media (max-width: 767px) {
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBar {
+    width: 100%;
+    /* Responsive plan - grows the search bar itself at phone width,
+       rather than shrinking the button to match it - SearchBar.module.css's
+       .searchGroup has a fixed 36px height everywhere else in the app
+       (used elsewhere too - AddMemberModal, JoinGroupModal - so it isn't
+       changed globally), but this page's .searchBar class lands on that
+       same <form> element (SearchBar.jsx merges both classNames onto one
+       node), so it can override height here without touching the shared
+       component. !important to be safe against .searchGroup's own fixed
+       height, same convention already used on .statusToggle in this file. */
+    height: 44px !important;
+  }
+
+  .statusToggle {
+    width: 100%;
+  }
+
+  .filters :global(.pf-v6-c-button) {
+    width: 100%;
+    /* Responsive plan - same fix as the other list pages' .actionsRow -
+       .statusToggle right above already matches .searchGroup's fixed
+       36px (see its own comment), this button was the one element in
+       the stack that never got that treatment. */
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+  }
+}
+
+/* Responsive plan - Mobile Step 4b-users - hide the MFA and Created
+   columns (6th and 7th of 7 in COLUMNS, UsersListPage.jsx) at <=767px
+   only - iPad deliberately kept all 7 columns and relied on Step 4a's
+   scroll fix alone (see ClientsListPage.module.css's iPad-4b comment),
+   so this is phone-specific, not an extension of that decision. Ranked
+   lowest-priority for a quick list scan: MFA is a binary Yes/No, and
+   Created is a date you'd check on the detail page rather than the list.
+   Same position-based caveat as ClientsListPage's iPad-4b rule: this
+   targets columns by nth-child position (6th/7th), not by name, since
+   DataTable.jsx has no generic per-column className hook - if COLUMNS'
+   order in UsersListPage.jsx ever changes, this must move with it. */
+@media (max-width: 767px) {
+  .pageBody :global(.pf-v6-c-table) thead tr th:nth-child(6),
+  .pageBody :global(.pf-v6-c-table) thead tr th:nth-child(7),
+  .pageBody :global(.pf-v6-c-table) tbody tr td:nth-child(6),
+  .pageBody :global(.pf-v6-c-table) tbody tr td:nth-child(7) {
+    display: none;
+  }
+}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import '@patternfly/react-core/dist/styles/base.css';
 import '../shared/patternfly-overrides.css';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router';
@@ -37,12 +38,26 @@ function AuthLayout() {
   );
 }
 
+// Responsive plan - iPad Step 2a - single shared open/closed boolean for
+// the collapsible nav. false is the default responsive behavior (icon
+// rail at <=1024px per Sidebar.module.css's media query, and eventually
+// full off-canvas hidden at phone widths once the Mobile phase lands);
+// true means the user has explicitly opened the nav back out despite
+// the narrow viewport. Lives here, not in Sidebar or Header, so both can
+// read/write it - Header's toggle button (iPad Step 2b) will set it,
+// Sidebar (iPad Step 2a) reads it, and the Mobile phase's Step 2a reuses
+// this same state for full off-canvas instead of a second toggle.
 function AppShell() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
   return (
     <div className={styles.shell}>
-      <Header />
+      <Header isNavOpen={isNavOpen} onToggleNav={setIsNavOpen} />
       <div className={styles.body}>
-        <Sidebar />
+        {/* Responsive plan - Mobile Step 2a - onClose lets the new
+            tap-to-close backdrop (Sidebar.jsx/Sidebar.module.css) collapse
+            the nav by writing back to this same isNavOpen state. */}
+        <Sidebar isNavOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
         <main className={styles.content}>
           <AnimatedOutlet />
         </main>

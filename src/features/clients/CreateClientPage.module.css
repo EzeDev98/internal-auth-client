@@ -21,6 +21,9 @@
   margin-bottom: 16px;
 }
 
+/* Responsive plan - iPad Step 5b - verified against PatternFly 6.6.1's compiled CSS: Wizard's side nav only becomes a persistent 15.625rem rail at >=62rem (992px) via its own @media rule; below that it's a toggle that takes no layout width. At 768px the nav costs nothing; at 1024px the fixed 250px rail still leaves ~613px for .stepBody, clearing grantTypeGrid's 432px minimum. No override needed - Mobile Step 5b can skip re-checking this and just verify at 375px directly. */
+/* Responsive plan - iPad Step 5b - verified against PatternFly 6.6.1's compiled CSS: Wizard's side nav only becomes a persistent 15.625rem rail at >=62rem (992px) via its own @media rule; below that it's a toggle that takes no layout width. At 768px the nav costs nothing; at 1024px the fixed 250px rail still leaves ~613px for .stepBody, clearing grantTypeGrid's 432px minimum. No override needed - Mobile Step 5b can skip re-checking this and just verify at 375px directly. */
+/* Responsive plan - iPad Step 5b - verified against PatternFly 6.6.1's compiled CSS: Wizard's side nav only becomes a persistent 15.625rem rail at >=62rem (992px) via its own @media rule; below that it's a toggle that takes no layout width. At 768px the nav costs nothing; at 1024px the fixed 250px rail still leaves ~613px for .stepBody, clearing grantTypeGrid's 432px minimum. No override needed - Mobile Step 5b can skip re-checking this and just verify at 375px directly. */
 .wizard {
   min-height: 520px;
   /* Keycloak's own form fields are square-cornered, unlike this app's
@@ -150,6 +153,26 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(200px, 1fr));
   gap: 12px 32px;
+}
+
+/* Responsive plan - Mobile Step 5b - the one real overflow risk in this
+   wizard, confirmed by checking the numbers rather than assuming: the
+   isHorizontal label/control layout on Form (all three steps) is not a
+   problem - PatternFly's pf-m-horizontal modifier only activates at its
+   own default breakpoint (md, ~768px) and stacks automatically below
+   that, no CSS from this app involved. This grid is different - it's
+   custom, not PatternFly-managed, and its 200px-per-column minimum plus
+   32px gap adds up to a hard 432px floor (the same number iPad Step 5b's
+   comment already flagged) that can't shrink on its own. At 375px,
+   .pageBody's 24px padding alone leaves ~327px before the wizard's own
+   step-body padding is even counted, so two columns force real overflow.
+   Single column removes the floor entirely below 768px, matching where
+   iPad's own verification already confirmed the two-column layout is
+   fine (768px+ clears 432px comfortably even with the rail). */
+@media (max-width: 767px) {
+  .grantTypeGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .grantTypeItem {

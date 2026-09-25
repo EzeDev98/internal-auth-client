@@ -1,4 +1,35 @@
 /* shared/tokens.css — Appendix A design tokens, loaded once at the app root */
+
+/* Responsive plan - breakpoint reference:
+   --bp-tablet-portrait:  768px
+   --bp-tablet-landscape: 1024px
+   --bp-phone:            480px  (Mobile phase, used sparingly)
+   Note: these are plain reference values, not CSS custom properties -
+   custom properties cannot be read inside @media conditions, so every
+   step below hard-codes the literal px value instead of var(--bp-*). */
+
+/* Responsive plan - Mobile Step 1a - breakpoint usage decision:
+   Default to 768px for every Mobile-phase rule; only reach for the
+   480px --bp-phone reference (iPad Step 1a) where a step's own testing
+   shows 768px still isn't enough. Decided per step below so 2-7 don't
+   re-litigate it:
+     Step 2  App shell     - 768px for the off-canvas swap itself (reuses
+                              iPad Step 2a's rail breakpoint machinery);
+                              480px for 2c's .brandText drop only - Header
+                              already crowds hamburger + logo + brandText +
+                              username + caret + avatar at 768px, so that
+                              one sub-step needs the tighter cutoff.
+     Step 3  Toolbars      - 768px only.
+     Step 4  DataTable     - 768px only (scroll fix inherited from iPad
+                              Step 4a at max-width:1024px covers phone
+                              already; no phone-only breakpoint needed).
+     Step 5  Forms/wizard  - 768px first; treat as a 480px candidate only
+                              if 5a/5b's 375px check finds something iPad's
+                              768px pass didn't - don't add the query
+                              pre-emptively.
+     Step 6  Auth screens  - 768px only; existing 24px/16px padding is
+                              expected to hold at 375px without a new rule.
+     Step 7  Touch targets - not breakpoint-gated (audit, not CSS). */
 :root {
   --sidebar-bg: #0f1b3d;
   --header-bg: #0a1330;

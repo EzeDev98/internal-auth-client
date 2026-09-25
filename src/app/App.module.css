@@ -23,6 +23,16 @@
   font-size: var(--text-md);
 }
 
+/* Responsive plan - Mobile Step 6 - verified at 375px for all four auth
+   pages (LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage).
+   None of them use Form's isHorizontal (unlike the wizard - Mobile Step
+   5b), so there's no label/control layout to worry about; none has a
+   grid or side-by-side field row; "Verification code" is a plain
+   TextInput, not a segmented OTP-box grid. This padding leaves 343px at
+   375px, under every page's own Card max-width (420-480px, set per page
+   in each *Page.module.css), so those caps never bind - the card just
+   shrinks to fill available width via its own width:100%. No CSS change
+   needed anywhere in this phase's Step 6. */
 .authShell {
   min-height: 100vh;
   font-family: var(--font-body);

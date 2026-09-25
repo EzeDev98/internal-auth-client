@@ -58,6 +58,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: [],
+        // Nothing is precached, so vite-plugin-pwa's default navigateFallback of
+        // index.html points at a file that is not in the precache and makes the
+        // service worker throw "non-precached-url" on every load.
+        navigateFallback: null,
         cacheId: `internal-auth-client-${buildVersion}`,
       },
     }),
