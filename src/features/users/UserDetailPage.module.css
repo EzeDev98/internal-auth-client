@@ -77,6 +77,30 @@
   padding-right: 24px;
 }
 
+.credentialCreatedAt {
+  max-width: 0; /* lets the cell shrink below its content's natural width */
+}
+
+.credentialCreatedAtShort {
+  display: none;
+}
+
+/* Phones: the full date+time was wrapping onto a second line and
+   crowding "Reset password". Show date only, and truncate with an
+   ellipsis as a safety net if it's still tight. */
+@media (max-width: 767px) {
+  .credentialCreatedAtFull {
+    display: none;
+  }
+
+  .credentialCreatedAtShort {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .credentialActions {
   text-align: right;
 }
@@ -99,6 +123,7 @@
 .tabActionsRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 12px;
 }
@@ -111,6 +136,25 @@
   position: relative;
   flex: 1;
   max-width: 360px;
+}
+
+/* Phones: the search box and the row's trailing action button (e.g.
+   "Join Group", "Assign Role") don't fit side by side at this width -
+   stack them so the button gets its own full-width row instead of
+   being clipped past the screen edge. */
+@media (max-width: 767px) {
+  .tabActionsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchWrapper {
+    max-width: none;
+  }
+
+  .tabActionsRow > button {
+    width: 100%;
+  }
 }
 
 .roleDropdown {

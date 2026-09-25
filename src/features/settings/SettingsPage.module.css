@@ -49,6 +49,10 @@
 
 .dangerZoneTrigger {
   margin-top: 32px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .dangerZoneDescription {
@@ -80,3 +84,4 @@
 .stepFailure {
   color: var(--pf-t--global--text--color--status--danger--default);
 }
+

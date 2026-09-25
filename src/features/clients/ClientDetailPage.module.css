@@ -94,6 +94,15 @@
   gap: 12px 32px;
 }
 
+/* Phones: two 200px-minimum columns need ~450px, wider than the
+   viewport, which was forcing the whole page to scroll horizontally
+   and clipping "Refresh token" off-screen. Stack to one column instead. */
+@media (max-width: 767px) {
+  .grantTypeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .grantTypeItem {
   display: flex;
   align-items: center;

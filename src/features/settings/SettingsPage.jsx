@@ -137,23 +137,21 @@ export default function SettingsPage() {
 
       <div className={styles.dangerZoneTrigger}>
         <Tooltip
-          position="bottom"
           content={(
             <>
               <strong>Danger zone</strong>
-              <br />
-              Wipes every user, session, and app-scoped record across SyncPoint, Notare, and
-              internal-auth itself, not just this app. SyncPoint&apos;s and Notare&apos;s own
-              admin wipe buttons keep working on their own - this is the one that runs all
-              three together.
+              <p className={styles.dangerZoneInfoText}>
+                Wipes every user, session, and app-scoped record across SyncPoint, Notare, and
+                internal-auth itself, not just this app. SyncPoint&apos;s and Notare&apos;s own
+                admin wipe buttons keep working on their own - this is the one that runs all
+                three together.
+              </p>
             </>
           )}
         >
-          <span>
-            <Button variant="danger" onClick={() => setIsWipeModalOpen(true)}>
-              Wipe everything
-            </Button>
-          </span>
+          <Button variant="danger" onClick={() => setIsWipeModalOpen(true)}>
+            Wipe everything
+          </Button>
         </Tooltip>
       </div>
 

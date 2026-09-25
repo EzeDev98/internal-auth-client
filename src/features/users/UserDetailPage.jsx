@@ -512,7 +512,18 @@ function CredentialsTab({ username, clientId }) {
           <tbody>
             <tr>
               <td>{credential.type === 'password' ? 'Password' : credential.type}</td>
-              <td>{credential.createdAt ? new Date(credential.createdAt).toLocaleString() : '—'}</td>
+              <td className={styles.credentialCreatedAt}>
+                {credential.createdAt ? (
+                  <>
+                    <span className={styles.credentialCreatedAtFull}>
+                      {new Date(credential.createdAt).toLocaleString()}
+                    </span>
+                    <span className={styles.credentialCreatedAtShort}>
+                      {new Date(credential.createdAt).toLocaleDateString()}
+                    </span>
+                  </>
+                ) : '—'}
+              </td>
               <td className={styles.credentialActions}>
                 <Button variant="secondary" onClick={openReset}>Reset password</Button>
               </td>
