@@ -1,3 +1,4 @@
+// Group detail screen with child groups, members and role mapping.
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -34,20 +35,6 @@ const ROLE_COLUMNS = [
   { key: 'description', label: 'Description', render: (row) => row.description || '—' },
 ];
 
-// Matches Keycloak's own group detail screen (Child groups / Members /
-// Role mapping tabs), reusing the same Tabs and DataTable components
-// already built for RoleDetailPage/GroupsListPage rather than
-// hand-rolling new layout. No Attributes tab, same reasoning as
-// RoleDetailPage: nothing in this app's group model maps to it.
-// Child groups still comes from GET /groups/{id}/subgroups; Members and
-// Role mapping are backed by the single GET /groups/{groupName} call
-// (GroupResponse's userResponses/roles).
-//
-// Each tab now owns its own action row (search + primary action), matching
-// Keycloak's per-tab toolbars, instead of one shared "Assign role"/"Create
-// child group" pair sitting in the page header regardless of which tab is
-// open - the search bars filter that tab's own rows client-side, the same
-// pattern GroupsListPage/RolesListPage/ClientsListPage already use.
 export default function GroupDetailPage() {
   const { id } = useParams();
   const groupId = Number(id);
@@ -70,20 +57,18 @@ export default function GroupDetailPage() {
 
   const [createSubgroupOpen, setCreateSubgroupOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
-  const [assignRoleTarget, setAssignRoleTarget] = useState(null); // null | { groupName } | { parentGroupName, subGroupName }
-  const [renameTarget, setRenameTarget] = useState(null); // null | { parentGroupName, groupName }
-  const [moveTarget, setMoveTarget] = useState(null); // null | { parentGroupName, groupName }
-  const [deleteTarget, setDeleteTarget] = useState(null); // null | { parentGroupName, groupName }
+  const [assignRoleTarget, setAssignRoleTarget] = useState(null);
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [moveTarget, setMoveTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [childGroupSearchInput, setChildGroupSearchInput] = useState('');
   const [roleSearchInput, setRoleSearchInput] = useState('');
 
-  const subgroups = subgroupsQuery.data ?? [];
+  const subgroups = useMemo(() => subgroupsQuery.data ?? [], [subgroupsQuery.data]);
   const members = groupDetailQuery.data?.userResponses ?? [];
-  const roles = groupDetailQuery.data?.roles ?? [];
+  const roles = useMemo(() => groupDetailQuery.data?.roles ?? [], [groupDetailQuery.data]);
 
-  // Filters live on every keystroke rather than waiting for submit - same
-  // reasoning as ClientsListPage/RolesListPage/GroupsListPage's own fix.
   const filteredSubgroups = useMemo(() => {
     const needle = childGroupSearchInput.trim().toLowerCase();
     if (!needle) return subgroups;

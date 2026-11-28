@@ -78,16 +78,13 @@
 }
 
 .credentialCreatedAt {
-  max-width: 0; /* lets the cell shrink below its content's natural width */
+  max-width: 0;
 }
 
 .credentialCreatedAtShort {
   display: none;
 }
 
-/* Phones: the full date+time was wrapping onto a second line and
-   crowding "Reset password". Show date only, and truncate with an
-   ellipsis as a safety net if it's still tight. */
 @media (max-width: 767px) {
   .credentialCreatedAtFull {
     display: none;
@@ -138,10 +135,6 @@
   max-width: 360px;
 }
 
-/* Phones: the search box and the row's trailing action button (e.g.
-   "Join Group", "Assign Role") don't fit side by side at this width -
-   stack them so the button gets its own full-width row instead of
-   being clipped past the screen edge. */
 @media (max-width: 767px) {
   .tabActionsRow {
     flex-direction: column;
@@ -219,16 +212,12 @@
   color: var(--pf-t--global--text--color--subtle, #6a6e73);
 }
 
-/* Plain, unstyled text - no pill/badge background - per feedback on the
-   filled "Assigned" indicator. */
 .roleDropdownAssigned {
   font-size: var(--text-xs, 12px);
   color: var(--pf-t--global--text--color--subtle, #6a6e73);
   flex-shrink: 0;
 }
 
-/* Shrink-wraps to its content (not a full-width banner) with a small
-   border radius, and fades itself out ~1s after appearing. */
 .assignSuccessAlert {
   display: inline-flex;
   width: auto;
@@ -250,11 +239,6 @@
   margin-bottom: 12px;
 }
 
-/* Sessions tab toolbar - search pinned to the left, "Logout all sessions"
-   pinned to the right, same row. Mirrors UsersListPage.module.css's own
-   .filters row (flex, centered, 12px gap) but space-between instead of
-   flex-start, since there's only one filter and one action here rather
-   than a filters cluster plus a trailing action. */
 .sessionsToolbar {
   display: flex;
   align-items: center;
@@ -272,10 +256,6 @@
   margin-bottom: 16px;
 }
 
-/* Same boxed/underline-only field treatment as CreateUserPage.module.css's
-   own .formBody (Keycloak's Details tab reference) - reused here
-   (renamed, since this is a horizontal-form tab rather than a full page)
-   rather than duplicated ad hoc. */
 .overviewForm {
   max-width: 1100px;
   margin-top: 24px;

@@ -1,10 +1,6 @@
+// Validation schema for creating a user.
 import { z } from 'zod';
 
-// Mirrors AdminCreateUserRequest's server-side validation
-// (RegistrationValidator's username/phone/email rules, plus
-// ResetValidator#validateNewPassword's password rule, which
-// AdminUserServiceImpl#createUser reuses directly) - same shape as
-// registerSchema.js, plus the clientId a user is always scoped to.
 export const createUserSchema = z
   .object({
     clientId: z.string().trim().min(1, 'Client application is required'),

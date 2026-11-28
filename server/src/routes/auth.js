@@ -1,9 +1,9 @@
+// Admin login, token refresh, logout and current-session routes.
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import { env, isProd } from '../config/env.js';
 import {
   adminLogin,
-  adminVerifyLoginOtp,
   adminRefreshToken,
   logoutSession,
 } from '../lib/authServerClient.js';
@@ -23,9 +23,6 @@ function sessionCookieOptions(maxAgeSeconds) {
   };
 }
 
-// Creates a brand-new session (login / verify-otp only). Refresh updates the
-// existing session record in place instead - see /refresh below - so it
-// doesn't orphan the old redis key.
 async function establishSession(res, loginData) {
   const sid = crypto.randomUUID();
   const ttlSeconds = loginData.refreshExpiresIn
@@ -51,31 +48,6 @@ router.post('/login', async (req, res) => {
   }
 
   const upstream = await adminLogin(username, password);
-  const body = upstream.data;
-
-  if (upstream.status >= 400 || !body?.success) {
-    return res.status(upstream.status).json(body);
-  }
-
-  if (body.data?.mfaRequired) {
-    return res.json({ success: true, message: body.message, data: { mfaRequired: true } });
-  }
-
-  await establishSession(res, body.data);
-  return res.json({
-    success: true,
-    message: body.message,
-    data: { userId: body.data.userId, username: body.data.username },
-  });
-});
-
-router.post('/login/verify-otp', async (req, res) => {
-  const { phoneNumber, otp } = req.body ?? {};
-  if (!phoneNumber || !otp) {
-    return res.status(400).json({ success: false, message: 'phoneNumber and otp are required' });
-  }
-
-  const upstream = await adminVerifyLoginOtp(phoneNumber, otp);
   const body = upstream.data;
 
   if (upstream.status >= 400 || !body?.success) {

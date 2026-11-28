@@ -1,22 +1,9 @@
+// Toast provider that renders notifications across the app.
 import {
-  createContext, useCallback, useContext, useMemo, useRef, useState,
+  useCallback, useMemo, useRef, useState,
 } from 'react';
 import { AlertGroup, Alert, AlertActionCloseButton } from '@patternfly/react-core';
-
-// UX smoothness plan Step 4a - the one central toast implementation for the
-// whole app. Every page/modal that needs a success or error confirmation
-// calls useToast() from here instead of hand-rolling its own inline Alert +
-// setTimeout (see UserDetailPage.jsx's RolesTab/PermissionGroupsTab/
-// CredentialsTab - plan Steps 8d/8e/8f - for the three places that pattern
-// was duplicated before this existed). Mirrors authContext.jsx's
-// createContext + throw-if-missing shape. Not mounted anywhere yet - that's
-// plan Step 5a, which wraps the app with <ToastProvider> once.
-//
-// Note on the "Step 4a" tag above: it refers to this UX smoothness plan's
-// own step numbering, not this codebase's older Step 1-12 build-plan
-// comments (e.g. Button.jsx's "Step 4E") - the two are separate sequences
-// that happen to share some numbers.
-const ToastContext = createContext(null);
+import { ToastContext } from './useToast';
 
 const DEFAULT_TIMEOUT_MS = 6000;
 
@@ -65,12 +52,4 @@ export function ToastProvider({ children }) {
       </AlertGroup>
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return ctx;
 }

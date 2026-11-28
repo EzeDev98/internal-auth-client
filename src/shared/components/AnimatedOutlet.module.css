@@ -1,7 +1,3 @@
-/* AnimatedOutlet.module.css - the exit duration here must stay in step
-   with EXIT_DURATION_MS in AnimatedOutlet.jsx: the component holds the
-   outgoing page on screen for exactly that long before swapping in the
-   next one. */
 .wrapper {
   width: 100%;
   min-height: 100%;

@@ -1,3 +1,4 @@
+// Response schemas for group endpoints.
 import { z } from 'zod';
 
 export const groupSummarySchema = z
@@ -25,9 +26,6 @@ export const groupUserSchema = z
     userId: z.number(),
     username: z.string().nullable(),
     email: z.string().nullable(),
-    // Every group/subgroup path this user belongs to, system-wide,
-    // comma-joined by the backend (DtoMapper#buildMembershipPaths) -
-    // matches Keycloak's own Members tab "Membership" column.
     membership: z.string().nullable(),
   })
   .passthrough();

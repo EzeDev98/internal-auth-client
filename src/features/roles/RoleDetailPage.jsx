@@ -1,3 +1,4 @@
+// Role detail screen with its permissions and users.
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Form, FormGroup, TextInput, TextArea } from '@patternfly/react-core';

@@ -1,13 +1,8 @@
+// Breadcrumb trail for detail screens.
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link } from 'react-router';
 import styles from './Breadcrumb.module.css';
 
-// Step 4D - e.g. "Roles > Role details". Non-last items render as
-// react-router Links via BreadcrumbItem's documented `render` prop (the
-// supported customization hook - unlike PatternFly's NavItem, which clones
-// and overwrites a child's own props; see Sidebar.jsx's comment on why that
-// approach was dropped there). The last item is the current page: plain
-// text, not a link.
 export default function AppBreadcrumb({ items }) {
   return (
     <Breadcrumb className={styles.breadcrumb}>

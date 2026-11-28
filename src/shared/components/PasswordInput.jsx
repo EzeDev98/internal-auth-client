@@ -1,16 +1,8 @@
+// Password field with a show and hide toggle.
 import { useState } from 'react';
 import { TextInput } from '@patternfly/react-core';
 import styles from './PasswordInput.module.css';
 
-// Show/hide toggle for every password field in the app (Register, Login,
-// Reset password). Plain inline SVGs rather than @patternfly/react-icons -
-// it's not a direct dependency of this project (only react-core/react-table
-// are), so pulling icons from it risks resolving against a hoisted copy
-// that may not be there. tabIndex={-1} keeps the toggle out of the form's
-// tab order - it's a convenience control, not a field a keyboard user
-// needs to stop on between the password input and the submit button.
-// Every other prop (id, name/onChange/onBlur/ref from react-hook-form's
-// register(), validated, etc.) passes straight through to TextInput.
 export default function PasswordInput({ id, ...rest }) {
   const [visible, setVisible] = useState(false);
 

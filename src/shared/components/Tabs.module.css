@@ -4,46 +4,19 @@
   font-weight: var(--weight-medium);
 }
 
-/* Rounds the hover/focus/current background pill (painted directly as
-   background-color on .pf-v6-c-tabs__link) to match the root --radius
-   token (tokens.css). */
 .tabs :global(.pf-v6-c-tabs__link) {
   border-radius: var(--radius) !important;
 }
 
-/* Confirmed via DevTools box model: the blue current-tab underline
-   (.pf-v6-c-tabs__list::after) is sized/positioned in JS from
-   .pf-v6-c-tabs__item (measured 92.34px wide, 8px padding every side),
-   while the grey hover/focus/current pill is background-color painted
-   on the .pf-v6-c-tabs__link button inside it (measured 76.34px wide -
-   exactly 92.34 minus 8px padding on each side). Same tab, two
-   different boxes.
-
-   Fix: move the item's horizontal padding to margin. The visual gap
-   between tabs is unchanged, but margin doesn't count toward the
-   item's own measured width, so the <li> shrinks to exactly the
-   button's box - the box the pill is painted on - and the underline
-   (measured from the <li>) lines up with the pill automatically. */
 .tabs :global(.pf-v6-c-tabs__item) {
   padding-inline: 0 !important;
   margin-inline: 8px !important;
 }
 
-/* PatternFly draws a border under the whole tab strip via .pf-v6-c-tabs::before
-   (a pseudo-element on the Tabs root itself, not the active-tab underline).
-   Removed app-wide per request - every screen using this shared Tabs
-   component (User details' 5 tabs, Group details' 3 tabs) loses it together. */
 .tabs:global(.pf-v6-c-tabs)::before {
   border: none;
 }
 
-/* PatternFly also draws a divider on the scroll buttons themselves
-   (.pf-v6-c-tabs__scroll-button::before) - a border-inline-start on the
-   right button, border-inline-end on the left one - to separate each
-   arrow from the tab list it scrolls. Removed per request, same as the
-   tab-strip's own border above; applies to both scroll buttons app-wide
-   wherever this shared Tabs component overflows (User details, Group
-   details). */
 .tabs :global(.pf-v6-c-tabs__scroll-button)::before {
   border: none;
 }

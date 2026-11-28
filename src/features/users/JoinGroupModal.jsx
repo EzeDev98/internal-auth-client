@@ -1,3 +1,4 @@
+// Modal for adding a user to a group.
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,9 +15,6 @@ import { listGroups, addGroupMember } from '../groups/api';
 import { joinGroupSchema } from './joinGroupSchema';
 import styles from './JoinGroupModal.module.css';
 
-// Same anchored PatternFly Dropdown/MenuToggle pattern as
-// AssignRoleModal.jsx's own RoleDropdown - a native <select> popup can't
-// be restyled, same reasoning documented there.
 function GroupDropdown({
   value, onChange, groups, isLoading, isError,
 }) {
@@ -62,13 +60,6 @@ function GroupDropdown({
   );
 }
 
-// Permission Groups tab "Join Group" button - existing POST
-// /groups/{groupName}/users (PermissionController#addUsersToGroup), the
-// same endpoint the group's own Members tab "Add member" action already
-// calls (groups/AddMemberModal.jsx), just called from the user's side with
-// username fixed and a group picked instead. Reuses groups/api.js's
-// listGroups() (already unpaginated - same list groups/AssignRoleModal.jsx
-// and GroupsListPage draw from) to populate the picker.
 export default function JoinGroupModal({ username, onClose, onJoined }) {
   const [serverError, setServerError] = useState(null);
 

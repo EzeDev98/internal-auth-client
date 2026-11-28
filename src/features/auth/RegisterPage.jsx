@@ -1,3 +1,4 @@
+// Admin account registration screen.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,11 +11,6 @@ import { registerSchema } from './registerSchema';
 import { registerAdmin } from './api';
 import styles from './RegisterPage.module.css';
 
-// Step 5B - bootstraps operator/admin accounts for this tool (Step 1's
-// AdminController#register), not platform end-users. A freshly registered
-// admin has no roles yet - access gets granted afterward via the Roles
-// screen (Step 8) - so this only confirms the account exists and points at
-// Login.
 export default function RegisterPage() {
   const [serverError, setServerError] = useState(null);
   const [success, setSuccess] = useState(null);

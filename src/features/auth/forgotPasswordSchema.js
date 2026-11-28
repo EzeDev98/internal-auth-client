@@ -1,3 +1,4 @@
+// Validation schemas for the forgot password form.
 import { z } from 'zod';
 
 export const phoneSchema = z.object({

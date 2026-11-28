@@ -1,11 +1,6 @@
+// Search input used by list screens.
 import styles from './SearchBar.module.css';
 
-// Extracted from ClientsListPage's original inline markup so every list
-// screen that needs a Keycloak-style boxed search field (icon, input,
-// submit arrow, all one bordered unit) uses the same component instead of
-// each page hand-rolling its own. `onSubmit` fires with the current value
-// on form submit (Enter or the arrow button) - trimming/debouncing is left
-// to the caller, same as ClientsListPage already did.
 export default function SearchBar({
   value, onChange, onSubmit, placeholder = 'Search', ariaLabel, className,
 }) {
@@ -34,11 +29,6 @@ export default function SearchBar({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         autoComplete="off"
-        // Chrome will otherwise treat a bare "Username"-labelled text input
-        // as an address-book field and pop its own "Manage addresses..."
-        // suggestion over ours (seen on the groups Add member search) -
-        // autocomplete="off" alone doesn't reliably stop that heuristic,
-        // but a nonstandard token does.
         name="search-no-autofill"
       />
       <button type="submit" className={styles.searchSubmit} aria-label="Submit search">

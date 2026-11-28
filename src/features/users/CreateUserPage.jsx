@@ -1,3 +1,4 @@
+// Form for creating a user.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -14,16 +15,9 @@ import PasswordInput from '../../shared/components/PasswordInput';
 import { listClients } from '../clients/api';
 import { createUser } from './api';
 import { createUserSchema } from './createUserSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './CreateUserPage.module.css';
 
-// Same reasoning as UsersListPage's StatusFilterDropdown - a native
-// <select> (FormSelect) renders its popup via the OS/browser, not us,
-// which is why it showed up as a plain dark system dropdown instead of
-// matching the app's own light popper/menu styling. This is a real
-// anchored PatternFly Dropdown/MenuToggle instead, styled via
-// .clientToggle in CreateUserPage.module.css to read as the same
-// underline-only field as every TextInput/PasswordInput on this page.
 function ClientApplicationDropdown({ value, onChange, clients, isLoading, isError }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = clients.find((client) => client.clientId === value);
@@ -68,12 +62,6 @@ function ClientApplicationDropdown({ value, onChange, clients, isLoading, isErro
   );
 }
 
-// Replaces CreateUserModal - same POST /users call (Step 7C), but restyled
-// as its own routed page to match Keycloak's own Create user screen (a
-// plain page with a horizontal label/field grid), the same way
-// CreateClientPage already replaced a Create client modal. No Wizard here
-// (Keycloak's Create user isn't a multi-step flow), just one
-// Form isHorizontal, same as CreateClientPage's own step body.
 export default function CreateUserPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);

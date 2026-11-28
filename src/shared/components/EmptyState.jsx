@@ -1,3 +1,4 @@
+// Placeholder shown when a list has no items.
 import {
   EmptyState as PFEmptyState, EmptyStateBody, EmptyStateFooter, EmptyStateActions,
 } from '@patternfly/react-core';

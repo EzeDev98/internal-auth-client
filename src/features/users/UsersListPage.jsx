@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+// Paged, searchable list of users.
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dropdown, DropdownList, DropdownItem, MenuToggle,
 } from '@patternfly/react-core';
@@ -26,11 +27,6 @@ const COLUMNS = [
   },
   { key: 'email', label: 'Email', render: (row) => row.email ?? '—' },
   { key: 'phoneNumber', label: 'Phone', render: (row) => row.phoneNumber ?? '—' },
-  // clientId has always come back on every row (see AdminUserServiceImpl's
-  // batch clientId resolution) and is already used internally to build the
-  // detail-page link above - it just never had a visible column, so there
-  // was no way to tell which integrating app (SyncPoint, Notare, ...) a
-  // user belonged to without opening its detail page.
   { key: 'clientId', label: 'App', render: (row) => row.clientId ?? '—' },
   {
     key: 'status',
@@ -41,7 +37,6 @@ const COLUMNS = [
       </Badge>
     ),
   },
-  { key: 'mfaEnabled', label: 'MFA', render: (row) => (row.mfaEnabled ? 'Yes' : 'No') },
   {
     key: 'createdAt',
     label: 'Created',
@@ -55,14 +50,6 @@ const STATUS_OPTIONS = [
   { value: 'false', label: 'Disabled' },
 ];
 
-// A real anchored PatternFly Dropdown/MenuToggle instead of a native
-// <select> (same primitives ActionsMenu.jsx already uses) - a native
-// select's popup is rendered by the OS/browser, not by us, which is why
-// it couldn't be resized, restyled, or reliably aligned to the toggle.
-// This one opens as a normal popper directly under its toggle, and the
-// toggle itself is styled in UsersListPage.module.css to match
-// SearchBar's box (same height/border/radius) so the two sit as one
-// visual unit.
 function StatusFilterDropdown({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = STATUS_OPTIONS.find((option) => option.value === value) ?? STATUS_OPTIONS[0];
@@ -101,33 +88,21 @@ function StatusFilterDropdown({ value, onChange }) {
   );
 }
 
-// Step 7A - list, backed by Step 2A's GET /users (which, like Steps 2B/2E,
-// already existed on the server despite the plan marking it "Needed").
-// search matches username/phone/email and enabled filters status, exactly
-// mirroring AdminUserController's own documented filters - no client
-// filter here since it's optional upstream and each row already carries
-// its own clientId (a Step 7A backend addition) for the detail link.
 export default function UsersListPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [enabledFilter, setEnabledFilter] = useState('');
 
-  // Live-as-you-type: searchInput updates every keystroke for the SearchBar,
-  // `search` only settles 400ms after typing stops - same pattern as
-  // SessionsListPage, now shared via useDebouncedSearch instead of each page
-  // hand-rolling its own setTimeout effect. handleSearchSubmit still commits
-  // immediately on Enter/arrow-click.
   const {
     searchInput, setSearchInput, search, handleSearchSubmit,
   } = useDebouncedSearch();
 
-  // Reset to page 1 whenever the committed search term changes, whether
-  // that came from the debounce settling or an explicit submit.
-  useEffect(() => {
+  const [pagedSearch, setPagedSearch] = useState(search);
+  if (search !== pagedSearch) {
+    setPagedSearch(search);
     setPage(1);
-  }, [search]);
+  }
 
   const handleStatusChange = (value) => {
     setEnabledFilter(value);

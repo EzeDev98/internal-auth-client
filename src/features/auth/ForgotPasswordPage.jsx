@@ -1,3 +1,4 @@
+// Two-step forgot password form: request an OTP, then verify it.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,17 +7,10 @@ import { Form, FormGroup, TextInput, ActionGroup, Alert, Card, CardBody, PageSec
 import Button from '../../shared/components/Button';
 import AuthHeading from '../../shared/components/AuthHeading';
 import { requestPasswordReset, verifyPasswordResetOtp } from './api';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import { phoneSchema, otpOnlySchema } from './forgotPasswordSchema';
 import styles from './ForgotPasswordPage.module.css';
 
-// Step 5C - two-step form (phone, then OTP) against the additive
-// /admin/password-reset/request and /verify-otp endpoints (see
-// AdminController's Javadoc for why the client-Basic-Auth-gated originals
-// couldn't be used here). Unlike LoginPage's OTP step, the phone number IS
-// known at this point - it's carried forward in component state rather
-// than asked for twice. On success, hands the resetToken to ResetPasswordPage
-// via router state (never the URL) rather than making the user copy/paste it.
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const toast = useToast();

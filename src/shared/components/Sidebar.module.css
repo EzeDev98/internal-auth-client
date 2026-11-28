@@ -8,11 +8,6 @@
   flex-direction: column;
 }
 
-/* Responsive plan - Mobile Step 2a - hidden by default (desktop and the
-   iPad rail have no backdrop); shown only <=767px, matching the
-   off-canvas breakpoint below. .body (App.module.css) is a flex
-   container, so this must stay display:none outside that query or it
-   renders as a stray flex item and breaks the shell layout. */
 .backdrop {
   display: none;
 }
@@ -69,24 +64,7 @@
   white-space: nowrap;
 }
 
-/* Responsive plan - iPad Step 2a - collapsed icon rail (Step 1b's
-   decision). Default at this width (no .expanded override) is the rail:
-   64px, icons only, label hidden. Adding .expanded (driven by isNavOpen -
-   see Sidebar.jsx) re-expands to the full 240px sidebar even here; that
-   override is wired up by iPad Step 2b's header toggle button. */
 @media (max-width: 1024px) {
-  /* Responsive plan - iPad Step 2a follow-up - real width/opacity
-     transitions instead of the instant display:none/inline + width jump.
-     display can't be animated, so the label now hides via
-     opacity + max-width (collapsing, not just invisible) while .sidebar's
-     width transitions in step with it.
-     justify-content is deliberately NOT toggled between center/flex-start
-     here anymore - that flip is instant (not animatable) and was causing
-     the icon/label block to snap to its new alignment mid-transition while
-     width/opacity were still easing, which read as the label "jumping
-     forward". Left-aligned in both states removes that discrete jump;
-     the icon just sits at the link's normal inline padding in the
-     collapsed rail instead of being pixel-centered. */
   .sidebar {
     width: 64px;
     transition: width 380ms ease-in-out;
@@ -110,16 +88,10 @@
   }
 }
 
-/* Responsive plan - Mobile Step 2a - below 768px the rail goes fully
-   off-canvas instead of staying a persistent 64px strip (iPad Step 1b's
-   rail decision only covers >=768px). Reuses the same isNavOpen boolean
-   and .expanded class the rail above already toggles, so Header's
-   existing hamburger (iPad Step 2b) needs no changes - only what
-   .expanded *does* changes at this width. */
 @media (max-width: 767px) {
   .sidebar {
     position: fixed;
-    top: 72px; /* below Header.module.css's 72px header */
+    top: 72px;
     bottom: 0;
     left: 0;
     width: 240px;
@@ -128,8 +100,6 @@
     z-index: 40;
   }
 
-  /* Off-canvas isn't a rail, so the label stays visible - overrides the
-     collapsed-rail hiding from the 1024px block above. */
   .navLabel {
     display: inline-block;
     max-width: 160px;

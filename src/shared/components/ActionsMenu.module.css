@@ -1,12 +1,3 @@
-/* Responsive plan - iPad Step 9 (touch-target audit follow-up) - the
-   kebab's real box is ~29-30px square (PatternFly's sm/plain MenuToggle:
-   14px font * 1.5 line-height + compact padding), under the ~44px touch
-   guideline - already true at iPad width, not just phone width. Padding
-   the button itself would grow every isCompact table's row height and
-   defeat the point of "compact"; a pseudo-element that overflows the
-   button's own box enlarges the tappable area without touching layout -
-   clicks landing in the overflow still hit this element since it's a
-   painted child of the button. */
 .toggle {
   position: relative;
   border-radius: var(--radius);
@@ -26,25 +17,6 @@
   box-shadow: none !important;
 }
 
-/* Responsive plan - Mobile Step 7 - this is the one control PatternFly's
-   pf-m-compact table density (used by every isCompact DataTable in the
-   app - ClientsListPage, RolesListPage, GroupsListPage, UsersListPage,
-   SessionsListPage, and the sub-tables in UserDetailPage/
-   GroupDetailPage/RoleDetailPage) reliably squeezes below a comfortable
-   tap target: MenuToggle's own variant="plain" size="sm" (ActionsMenu.jsx)
-   is already PatternFly's smallest chrome-stripped button size, and
-   compact cell padding (~8px top/bottom vs. the default's ~16px) leaves
-   even less room around it. min-width/min-height here grows the actual
-   clickable box to 44px without touching the icon's own visual size -
-   PatternFly's plain buttons center their icon content via flex already,
-   so the icon stays visually centered as the box grows around it. Scoped
-   to phone width only; tablet/desktop keep the smaller, denser kebab
-   this compact density is meant to give them. Rows with a kebab will
-   render a little taller at phone width as a result - expected, not a
-   bug, the same trade-off iPad Step 7's audit made for Sidebar/DataTable
-   hover states generally. Plain row links (Client ID, Username, etc.)
-   aren't touched here - a text link's tap area follows its line box
-   regardless of row density, unlike a small icon-only button. */
 @media (max-width: 767px) {
   .toggle {
     min-width: 44px;

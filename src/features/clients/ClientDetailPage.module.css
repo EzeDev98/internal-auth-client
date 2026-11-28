@@ -45,10 +45,6 @@
   max-width: 760px;
 }
 
-/* Same Keycloak-reference field look as CreateClientPage.module.css's
-   .stepBody: square corners instead of this app's rounded default, and a
-   thinner top/left/right border with the bottom border left at
-   PatternFly's own default width/color. Scoped to this page's form only. */
 .formBody {
   max-width: 760px;
   --pf-t--global--border--radius--control--form-element: 0;
@@ -94,9 +90,6 @@
   gap: 12px 32px;
 }
 
-/* Phones: two 200px-minimum columns need ~450px, wider than the
-   viewport, which was forcing the whole page to scroll horizontally
-   and clipping "Refresh token" off-screen. Stack to one column instead. */
 @media (max-width: 767px) {
   .grantTypeGrid {
     grid-template-columns: 1fr;
@@ -137,10 +130,6 @@
   gap: 6px;
 }
 
-/* On phones, drop to icon-only so the client-secret input above gets the
-   width back to show more of the actual secret value. Label stays in the
-   DOM (via aria-label on the button) so it's still announced by screen
-   readers even though it's visually hidden here. */
 @media (max-width: 767px) {
   .regenerateLabel {
     display: none;

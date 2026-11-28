@@ -1,3 +1,4 @@
+// Modal for moving a sub-group under another parent.
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,12 +13,9 @@ import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import { listGroups, moveSubgroup } from './api';
 import { moveGroupSchema } from './moveGroupSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './MoveGroupModal.module.css';
 
-// Same reasoning as AssignRoleModal's RoleDropdown - a real anchored
-// Dropdown/MenuToggle rather than a native <select>, so the popup is one
-// we control (light background, checkmark) instead of the OS's own list.
 function DestinationDropdown({ value, onChange, groups, isLoading, isError }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = (groups ?? []).find((group) => group.groupName === value);
@@ -60,11 +58,6 @@ function DestinationDropdown({ value, onChange, groups, isLoading, isError }) {
   );
 }
 
-// Destination options come from the existing top-level groups list
-// (Step 9A's listGroups), excluding the group's current parent since
-// moving it there would be a no-op. Backed by PATCH
-// /groups/{parentGroupName}/subgroups/{subGroupName}/move
-// (PermissionController#moveSubGroup), proxied via moveSubgroup in api.js.
 export default function MoveGroupModal({ parentGroupName, groupName, onClose, onMoved }) {
   const [serverError, setServerError] = useState(null);
   const toast = useToast();

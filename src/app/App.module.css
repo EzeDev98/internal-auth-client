@@ -23,16 +23,6 @@
   font-size: var(--text-md);
 }
 
-/* Responsive plan - Mobile Step 6 - verified at 375px for all four auth
-   pages (LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage).
-   None of them use Form's isHorizontal (unlike the wizard - Mobile Step
-   5b), so there's no label/control layout to worry about; none has a
-   grid or side-by-side field row; "Verification code" is a plain
-   TextInput, not a segmented OTP-box grid. This padding leaves 343px at
-   375px, under every page's own Card max-width (420-480px, set per page
-   in each *Page.module.css), so those caps never bind - the card just
-   shrinks to fill available width via its own width:100%. No CSS change
-   needed anywhere in this phase's Step 6. */
 .authShell {
   min-height: 100vh;
   font-family: var(--font-body);
@@ -42,16 +32,6 @@
   padding: 24px 16px;
 }
 
-/* PatternFly's
-   PageSection (.pf-v6-c-page__main-section, rendered between this
-   authShell and the Card) has no explicit width, so as a flex item it
-   shrinks to fit its content instead of filling the row. The Card's own
-   `width: 100%` (set per-page) then resolves against that shrink-wrapped
-   parent, not against authShell - so the whole chain collapses to the
-   input fields' natural size regardless of what max-width the Card asks
-   for. Giving the section a definite width lets the Card's percentage
-   actually resolve against real space, and centering main-body replaces
-   the centering that came for free while the section was shrink-wrapped. */
 .authShell :global(.pf-v6-c-page__main-section) {
   width: 100%;
 }
@@ -61,16 +41,6 @@
   justify-content: center;
 }
 
-/* Centers the "No admin account yet? Register" / "Forgot password?" /
-   "Back to login" style links under each form, like the reference. Each
-   auth page names this paragraph differently in its own module CSS
-   (LoginPage's is .registerLink, the other three use .loginLink) so
-   there's no shared class to hook - but every one of them is a <p> that
-   wraps a react-router <Link>, and the reference's centered style is
-   meant for exactly that link-under-the-form pattern, not for ordinary
-   paragraph text. :has(a) targets paragraphs containing a link
-   specifically, so this doesn't touch ForgotPasswordPage's plain-text
-   intro paragraph (the OTP-sent notice), which has no link in it. */
 .authShell :global(.pf-v6-c-card) p:has(a) {
   text-align: center;
 }

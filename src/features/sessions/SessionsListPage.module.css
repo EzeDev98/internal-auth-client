@@ -33,10 +33,6 @@
   white-space: nowrap;
 }
 
-/* Matches SearchBar.module.css's .searchGroup box exactly (height, border,
-   radius, background) so the status filter and the search field read as
-   one consistent row - same rules as UsersListPage.module.css's
-   .statusToggle. */
 .statusToggle {
   --pf-v6-c-menu-toggle--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
   --pf-v6-c-menu-toggle--hover--BorderColor: var(--pf-t--global--border--color--default, #d2d2d2);
@@ -66,17 +62,6 @@
   margin-bottom: 12px;
 }
 
-/* Responsive plan - Mobile Step 3a - stack .filters below 768px. This
-   page has no .toolbar at all (title/description are plain children of
-   .pageBody, not wrapped - SessionsListPage.jsx), so nothing to touch
-   there. Three items: search, .statusToggle, and the danger-variant
-   "Revoke all sessions" button - which already has its own
-   .revokeAllButton className (unlike the other pages' Create buttons),
-   so it's targeted directly rather than via PatternFly's emitted class.
-   Its existing margin-left:auto (the row layout's push-right trick)
-   becomes a no-op once the button spans full width, but is reset to 0
-   explicitly here rather than left as a dead rule for the next person
-   to puzzle over. */
 @media (max-width: 767px) {
   .filters {
     flex-direction: column;
@@ -86,15 +71,6 @@
   .searchBar {
     width: 100%;
     flex: none;
-    /* Responsive plan - grows the search bar itself at phone width,
-       rather than shrinking the button to match it - SearchBar.module.css's
-       .searchGroup has a fixed 36px height everywhere else in the app
-       (used elsewhere too - AddMemberModal, JoinGroupModal - so it isn't
-       changed globally), but this page's .searchBar class lands on that
-       same <form> element (SearchBar.jsx merges both classNames onto one
-       node), so it can override height here without touching the shared
-       component. !important to be safe against .searchGroup's own fixed
-       height, same convention already used on .statusToggle in this file. */
     height: 36px !important;
   }
 
@@ -105,10 +81,6 @@
   .revokeAllButton {
     width: 100%;
     margin-left: 0;
-    /* Responsive plan - same fix as the other list pages' Create button -
-       .statusToggle right above already matches .searchGroup's fixed
-       36px (see its own comment), this was the one element in the stack
-       that never got that treatment. */
     height: 36px !important;
     min-height: 36px !important;
     max-height: 36px !important;

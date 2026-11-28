@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+// Paged list of user sessions with filtering and revoke actions.
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert, Dropdown, DropdownList, DropdownItem, MenuToggle,
@@ -11,7 +12,7 @@ import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
 import useDebouncedSearch from '../../shared/hooks/useDebouncedSearch';
 import { listSessions, revokeSession, revokeAllSessions } from './api';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './SessionsListPage.module.css';
 
 const DASH = String.fromCharCode(8212);
@@ -22,10 +23,6 @@ const SESSION_STATUS_OPTIONS = [
   { value: 'false', label: 'Ended' },
 ];
 
-// Same Dropdown/MenuToggle pattern as UsersListPage's StatusFilterDropdown
-// (a real anchored popper instead of a native <select>, styled to match
-// SearchBar's box) so the two list screens' status filters look and
-// behave identically.
 function SessionStatusFilterDropdown({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = SESSION_STATUS_OPTIONS.find((option) => option.value === value)
@@ -83,55 +80,29 @@ const COLUMNS = [
   { key: 'endReason', label: 'End reason', render: (row) => row.endReason ?? DASH },
 ];
 
-// Step 10A - standalone list, backed by Step 2E's GET /admin/sessions
-// (already built, and already used by the Users - Detail Sessions tab
-// per UserSessionController's own Javadoc) - this screen calls it with no
-// username/clientId filter, unlike that tab. ipAddress/device match as a
-// substring server-side (per the endpoint's own description), so each
-// gets its own debounced text filter rather than one combined search box.
-//
-// Step 10B - Revoke, via Step 4E's single ActionsMenu pattern. The real
-// upstream endpoint (UserSessionController#invalidateSession) closes a
-// user's one active session, not a specific session id - so "Revoke" is
-// disabled for any row that's already inactive, same intent either way.
-// It's also disabled if clientId couldn't be resolved server-side
-// (AdminSessionSummaryResponse's clientId is best-effort - see
-// SessionManagementServiceImpl#resolveClientId) since the upstream call
-// requires it. Confirmation reuses the shared Modal primitive exactly as
-// its own Step 4E docblock intends ("confirmation dialogs, simple forms").
 export default function SessionsListPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [activeFilter, setActiveFilter] = useState('');
-  const [revokeTarget, setRevokeTarget] = useState(null); // null | { username, clientId }
+  const [revokeTarget, setRevokeTarget] = useState(null);
   const [revokeError, setRevokeError] = useState(null);
   const [isRevoking, setIsRevoking] = useState(false);
   const [isRevokeAllOpen, setIsRevokeAllOpen] = useState(false);
   const [revokeAllError, setRevokeAllError] = useState(null);
   const [isRevokingAll, setIsRevokingAll] = useState(false);
 
-  // Live-as-you-type: searchInput updates every keystroke for the SearchBar,
-  // `search` only settles 400ms after typing stops so ipAddress/device
-  // filtering (a real network request) doesn't fire on every keystroke -
-  // now shared via useDebouncedSearch instead of a hand-rolled setTimeout
-  // effect. handleSearchSubmit still commits immediately on Enter/arrow-click.
   const {
     searchInput, setSearchInput, search, handleSearchSubmit,
   } = useDebouncedSearch();
 
-  // Reset to page 1 whenever the committed search term changes, whether
-  // that came from the debounce settling or an explicit submit.
-  useEffect(() => {
+  const [pagedSearch, setPagedSearch] = useState(search);
+  if (search !== pagedSearch) {
+    setPagedSearch(search);
     setPage(1);
-  }, [search]);
+  }
 
-  // The endpoint still only takes ipAddress and device as two separate
-  // substring filters, ANDed together server-side - so sending one typed
-  // term to both would break device search (an IP never contains e.g.
-  // "axios"). Instead, route the term to whichever field it looks like:
-  // IPv4/IPv6 characters only -> ipAddress, anything else -> device.
   const isIpLike = /^[0-9a-fA-F:.]+$/.test(search);
 
   const {

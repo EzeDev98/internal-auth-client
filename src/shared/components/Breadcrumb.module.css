@@ -3,12 +3,6 @@
   font-size: var(--text-sm);
 }
 
-/* PatternFly's own .pf-v6-c-breadcrumb__link sets text-decoration-line
-   directly (a class selector), which beats the app-wide `a { text-decoration:
-   none }` rule in patternfly-overrides.css (a plain element selector) on
-   specificity - that rule never actually reached this link. Overriding the
-   same class here, scoped to this component, removes the dashed underline
-   in every state (default/hover/focus) without touching links elsewhere. */
 .breadcrumb :global(.pf-v6-c-breadcrumb__link) {
   text-decoration-line: none;
 }

@@ -1,3 +1,4 @@
+// Modal for renaming a group.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,13 +7,9 @@ import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { renameSubgroup } from './api';
 import { renameGroupSchema } from './renameGroupSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './RenameGroupModal.module.css';
 
-// Same Modal + react-hook-form/zod shell as CreateGroupModal. Backed by
-// PATCH /groups/{parentGroupName}/subgroups/{subGroupName}
-// (PermissionController#renameSubGroup), proxied via renameSubgroup in
-// api.js.
 export default function RenameGroupModal({ parentGroupName, groupName, onClose, onRenamed }) {
   const [serverError, setServerError] = useState(null);
   const toast = useToast();

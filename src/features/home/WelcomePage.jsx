@@ -1,10 +1,7 @@
+// Landing page shown after login.
 import logo from '../../assets/sidebar-logo.png';
 import styles from './WelcomePage.module.css';
 
-// The app-root landing page. Login (and any authenticated visit to "/")
-// lands here instead of on a specific section like Clients, so nothing in
-// the sidebar is the "current" route and none of it reads as focused/active
-// by default - the user picks where to go from the nav instead.
 export default function WelcomePage() {
   return (
     <div className={styles.welcome}>

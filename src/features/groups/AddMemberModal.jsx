@@ -1,3 +1,4 @@
+// Modal for adding a user to a group.
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Form, FormGroup, Alert } from '@patternfly/react-core';
@@ -6,26 +7,14 @@ import Button from '../../shared/components/Button';
 import SearchBar from '../../shared/components/SearchBar';
 import { listUsers } from '../users/api';
 import { addGroupMember } from './api';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './AddMemberModal.module.css';
 
-// Members tab "Add member" button - existing POST /groups/{groupName}/users
-// (PermissionController#addUsersToGroup) adds an existing user straight
-// into the group (granting them every role already mapped to it), so this
-// picks a user rather than creating one.
-//
-// Same catalog-fetched-once + instant client-side filter pattern as
-// UserDetailPage's RolesTab/PermissionGroupsTab (no per-keystroke network
-// call, no "Searching..." delay) - fetched lazily on first keystroke and
-// cached, then just filtered in memory as the person keeps typing. Capped
-// at a generous page size rather than paginated, same trade-off as those:
-// fine for a catalog small enough to hold in memory, but a user beyond
-// that first page won't show up here.
 const CATALOG_SIZE = 50;
 
 export default function AddMemberModal({ groupName, onClose, onAdded }) {
   const [searchInput, setSearchInput] = useState('');
-  const [confirmTarget, setConfirmTarget] = useState(null); // null | username
+  const [confirmTarget, setConfirmTarget] = useState(null);
   const [confirmError, setConfirmError] = useState(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const toast = useToast();
@@ -77,15 +66,6 @@ export default function AddMemberModal({ groupName, onClose, onAdded }) {
       >
         <Form id="add-member-form" onSubmit={(event) => event.preventDefault()}>
           <FormGroup label="Username" isRequired fieldId="username-search">
-            {/* Results now render inside the FormGroup, right under the
-                SearchBar, in normal flow - no position:absolute. That was
-                tried and reverted: PatternFly's ModalBody manages its own
-                overflow/scroll for modal content, and an absolutely
-                positioned dropdown could end up clipped or scrolled out of
-                view in that context, which silently hid the results.
-                Keeping this in-flow (just without the FormGroup boundary
-                gap that caused the original "pushed down" look) is what
-                keeps it both visible and closely aligned to the search bar. */}
             <SearchBar
               value={searchInput}
               onChange={setSearchInput}

@@ -1,3 +1,4 @@
+// Multi-step form for creating a client application.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, useWatch, Controller } from 'react-hook-form';
@@ -16,18 +17,12 @@ import RefreshTokenSettingsFields from './RefreshTokenSettingsFields';
 import { buildRefreshTokenPayload, DEFAULT_REFRESH_TOKEN_TTL_DAYS } from './refreshTokenSettings';
 import styles from './CreateClientPage.module.css';
 
-// Same three grant types the backend actually accepts
-// (CreateClientApplicationRequest#grantTypes) - reordered/relabeled to sit
-// in Keycloak's own two-column "Authentication flow" layout, not expanded
-// with flows this app doesn't support.
 const GRANT_TYPE_OPTIONS = [
   { value: 'authorization_code', label: 'Authorization code', help: 'Lets this client obtain tokens via the OAuth 2.0 authorization code flow.' },
   { value: 'refresh_token', label: 'Refresh token', help: 'Lets this client request a refresh token alongside its access token.' },
   { value: 'client_credentials', label: 'Client credentials', help: 'Lets this client authenticate and obtain tokens on its own behalf, without a user.' },
 ];
 
-// Small "?" trigger for the field-level tooltips below - avoids pulling in
-// @patternfly/react-icons for a single glyph.
 function HelpTooltip({ content }) {
   return (
     <Tooltip content={content}>
@@ -43,14 +38,6 @@ function splitList(value) {
     .filter(Boolean);
 }
 
-// Custom per-step footer, styled to match PatternFly's own default
-// WizardFooter (Next/Create, Back, Cancel), but with a `validate` hook run
-// before advancing - the stock footer has no such hook, it just calls
-// goToNextStep unconditionally. Passing a component (rather than a plain
-// props object) as WizardStep's `footer` makes Wizard treat it as a fully
-// custom footer (see @patternfly/react-core's isCustomWizardFooter), which
-// is what makes useWizardContext() below available - it's a descendant of
-// WizardContextProvider, whereas CreateClientPage itself is an ancestor.
 function StepFooter({ nextLabel = 'Next', validate, isLoading }) {
   const { goToNextStep, goToPrevStep, close, activeStep } = useWizardContext();
 
@@ -86,24 +73,11 @@ function StepFooter({ nextLabel = 'Next', validate, isLoading }) {
   );
 }
 
-// Create client, restyled as a 3-step wizard (General settings / Capability
-// config / Login settings) to match Keycloak's own admin console, which
-// this reference is - Keycloak's admin console is itself built on
-// PatternFly, so this uses PatternFly's own Wizard component rather than
-// hand-rolling the stepper look.
-//
-// Same POST /client-applications call and same post-create secret reveal
-// as the modal this replaces - the client secret is still only returned
-// once (CreateClientApplicationResponse's own Javadoc), so that reveal
-// stays a Modal on top of this page rather than another wizard step.
 export default function CreateClientPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
   const [created, setCreated] = useState(null);
 
-  // Purely cosmetic, to match Keycloak's layout - this app always
-  // generates a client secret server-side (CreateClientApplicationRequest
-  // has no such field), so these two switches don't feed into submission.
   const [clientAuthEnabled, setClientAuthEnabled] = useState(false);
   const [authorizationEnabled, setAuthorizationEnabled] = useState(false);
 
@@ -163,13 +137,6 @@ export default function CreateClientPage() {
     );
   }
 
-  // Nothing here blocks navigating to a later step first (matching the
-  // reference: every step's nav item is a plain clickable link, none
-  // disabled), so a skip-ahead visitor can reach "Create" without a valid
-  // Client ID/Name. The real gate is still handleSubmit's zodResolver run
-  // on submit; this banner just surfaces that failure on the step it's
-  // actually visible on, since the General settings fields are unmounted
-  // by then.
   const hasEarlierStepErrors = Boolean(errors.clientId || errors.name);
 
   return (

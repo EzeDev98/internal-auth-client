@@ -1,3 +1,4 @@
+// Searchable list of top-level groups.
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -16,15 +17,11 @@ const matchGroupRow = (row, needle) => row.groupName?.toLowerCase().includes(nee
 export default function GroupsListPage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
-  const [assignRoleTarget, setAssignRoleTarget] = useState(null); // null | { groupName }
+  const [assignRoleTarget, setAssignRoleTarget] = useState(null);
 
   const groupsQuery = useQuery({ queryKey: ['groups'], queryFn: listGroups });
   const rows = groupsQuery.data ?? [];
 
-  // listGroups() returns every group unpaginated, so this filters the
-  // already-loaded list client-side, live on every keystroke - same as
-  // ClientsListPage/RolesListPage's own live-filter fix. Filtering itself
-  // now lives in the shared useClientSideSearch hook.
   const filteredRows = useClientSideSearch(rows, searchInput, matchGroupRow);
 
   const columns = useMemo(

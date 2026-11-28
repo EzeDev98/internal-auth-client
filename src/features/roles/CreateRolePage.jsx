@@ -1,3 +1,4 @@
+// Form for creating a role.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
@@ -7,15 +8,9 @@ import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Button from '../../shared/components/Button';
 import { createRole } from './api';
 import { createRoleSchema } from './createRoleSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './CreateRolePage.module.css';
 
-// Replaces CreateRoleModal - same POST /roles call (Step 8B), restyled as
-// its own routed page to match Keycloak's own Create role screen, the same
-// way CreateUserPage already replaced CreateUserModal (see that page's own
-// comment for the general rationale). Just Role name + Description here,
-// so no Controller/dropdown field is needed like CreateUserPage's client
-// application picker.
 export default function CreateRolePage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);

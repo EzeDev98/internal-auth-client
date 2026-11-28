@@ -1,3 +1,4 @@
+// Validation schema for the registration form.
 import { z } from 'zod';
 
 export const registerSchema = z

@@ -1,3 +1,4 @@
+// Client application detail screen with settings and credentials.
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { useForm, useWatch, Controller } from 'react-hook-form';
@@ -16,25 +17,19 @@ import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Tabs from '../../shared/components/Tabs';
 import Modal from '../../shared/components/Modal';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import { getClient, updateClient, rotateSecret } from './api';
 import { updateClientSchema } from './updateClientSchema';
 import RefreshTokenSettingsFields from './RefreshTokenSettingsFields';
 import { buildRefreshTokenPayload } from './refreshTokenSettings';
 import styles from './ClientDetailPage.module.css';
 
-// Same fixed list CreateClientPage shows in its "Authentication flow" grid
-// (the only three grantTypes the backend accepts). Editable here too; the server
-// rejects removing refresh_token while persistent refresh tokens are on.
 const GRANT_TYPE_OPTIONS = [
   { value: 'authorization_code', label: 'Authorization code', help: 'Lets this client obtain tokens via the OAuth 2.0 authorization code flow.' },
   { value: 'refresh_token', label: 'Refresh token', help: 'Lets this client request a refresh token alongside its access token.' },
   { value: 'client_credentials', label: 'Client credentials', help: 'Lets this client authenticate and obtain tokens on its own behalf, without a user.' },
 ];
 
-// Same small "?" trigger as CreateClientPage's own HelpTooltip - kept as
-// its own local copy here rather than a shared import, same as that file
-// does.
 function HelpTooltip({ content }) {
   return (
     <Tooltip content={content}>
@@ -43,13 +38,6 @@ function HelpTooltip({ content }) {
   );
 }
 
-// Client secret field - masked like a password field by default, with an
-// eye toggle to reveal it and a copy button, matching Keycloak's own
-// Credentials tab look. value is the decrypted secret from the client
-// detail response (server-side clientSecretEncrypted) whenever one
-// exists - persistent across reloads, same as real Keycloak. Only stays
-// empty (eye/copy disabled) for a CONFIDENTIAL client that predates this
-// feature and hasn't been regenerated yet.
 function SecretField({ value, onRegenerate }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -61,7 +49,6 @@ function SecretField({ value, onRegenerate }) {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 1500);
     } catch {
-      // Clipboard API unavailable/denied - nothing else to fall back to here.
     }
   };
 
@@ -132,18 +119,6 @@ function formatDate(value) {
   return value ? new Date(value).toLocaleString() : '—';
 }
 
-// Step 6C - detail/edit, backed by Step 2B's GET/PATCH
-// /client-applications/{clientId}. Field design deliberately reuses
-// CreateClientPage's own look (isHorizontal Form, the same flat/square
-// form-control styling, the same HelpTooltip and grant-type grid) rather
-// than a second one-off style, since that page is already the Keycloak
-// reference for this app. clientId, type and grantTypes aren't editable
-// here - UpdateClientApplicationRequest's own Javadoc says so directly -
-// so they render disabled instead of as live inputs. Keycloak's Roles,
-// Client scopes, Sessions and Advanced tabs have no backing service on
-// our side (no per-client roles/scopes/sessions/advanced-config
-// endpoint), so only Settings is rendered as a tab - nothing stubbed in
-// for the rest.
 export default function ClientDetailPage() {
   const { clientId } = useParams();
   const queryClient = useQueryClient();
@@ -188,8 +163,6 @@ export default function ClientDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
 
-  // Fields that fail validation can be scrolled out of view on this long form,
-  // so say so next to the Save button instead of doing nothing.
   const onInvalid = () => {
     setServerError('Some fields are invalid. Fix the highlighted fields and save again.');
   };
@@ -225,11 +198,6 @@ export default function ClientDetailPage() {
     setIsRotating(true);
     try {
       const result = await rotateSecret(clientId);
-      // The rotate response carries the plaintext secret over the wire
-      // this one time - drop it straight into the cached client so the
-      // field updates immediately instead of waiting on a refetch. From
-      // here on, a fresh GET/page load returns the same value too (the
-      // server now stores it reversibly - see clientSecretEncrypted).
       queryClient.setQueryData(['clients', clientId], (current) => (
         current ? { ...current, clientSecret: result.clientSecret } : current
       ));

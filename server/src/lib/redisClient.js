@@ -1,3 +1,4 @@
+// Shared Redis connection for the BFF.
 import { createClient } from 'redis';
 import { env } from '../config/env.js';
 

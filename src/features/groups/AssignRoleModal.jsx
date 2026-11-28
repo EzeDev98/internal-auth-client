@@ -1,3 +1,4 @@
+// Modal for assigning a role to a group or sub-group.
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,15 +14,9 @@ import Button from '../../shared/components/Button';
 import { listRoles } from '../roles/api';
 import { assignRoleToGroup, assignRoleToSubgroup } from './api';
 import { assignRoleSchema } from './assignRoleSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './AssignRoleModal.module.css';
 
-// Same reasoning as UsersListPage's StatusFilterDropdown and CreateUserPage's
-// ClientApplicationDropdown - a native <select> (FormSelect) renders its
-// popup via the OS/browser, not us, which is why it showed up as a plain
-// dark system dropdown instead of matching the app's own light popper/menu
-// styling. This is a real anchored PatternFly Dropdown/MenuToggle instead,
-// full width to fill the modal's form field the same way FormSelect did.
 function RoleDropdown({ value, onChange, roles, isLoading, isError }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = (roles ?? []).find((role) => role.roleName === value);
@@ -64,14 +59,6 @@ function RoleDropdown({ value, onChange, roles, isLoading, isError }) {
   );
 }
 
-// Step 9B - existing POST /groups/{groupName}/roles and POST
-// /groups/{parentGroupName}/subgroups/{subGroupName}/roles
-// (PermissionController#assignRoleToGroup / #assignRoleToSubGroup), wired
-// to a single modal shared by both cases: `target` is either
-// { groupName } for a top-level group or { parentGroupName, subGroupName }
-// for a subgroup. Reuses Step 8A's existing listRoles() to populate the
-// picker (same pattern as CreateUserModal's client-application picker)
-// rather than asking the admin to type a raw role name from memory.
 export default function AssignRoleModal({ target, onClose, onAssigned }) {
   const [serverError, setServerError] = useState(null);
   const toast = useToast();

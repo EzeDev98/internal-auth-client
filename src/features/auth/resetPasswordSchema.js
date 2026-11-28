@@ -1,3 +1,4 @@
+// Validation schema for the reset password form.
 import { z } from 'zod';
 
 export const resetPasswordSchema = z

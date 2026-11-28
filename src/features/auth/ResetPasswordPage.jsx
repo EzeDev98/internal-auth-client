@@ -1,3 +1,4 @@
+// Sets a new password using the reset token from the forgot password flow.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,12 +11,6 @@ import { completePasswordReset } from './api';
 import { resetPasswordSchema } from './resetPasswordSchema';
 import styles from './ResetPasswordPage.module.css';
 
-// Step 5D - completes the flow Step 5C started. The resetToken travels here
-// via router state (set by ForgotPasswordPage's navigate call) rather than
-// the URL, so it never ends up in browser history or server logs. A direct
-// visit to this route with no state (e.g. a page refresh) has no token to
-// complete with, so it sends the visitor back to start over instead of
-// showing a form that can only fail.
 export default function ResetPasswordPage() {
   const location = useLocation();
   const resetToken = location.state?.resetToken;

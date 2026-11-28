@@ -1,3 +1,4 @@
+// Express entry point for the BFF, also serving the built SPA in production.
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -35,8 +36,6 @@ async function main() {
 
   app.get('/bff/health', (req, res) => res.json({ success: true, data: { status: 'ok' } }));
 
-  // Same-origin production serving of the built SPA - guarded by
-  // fs.existsSync so this is a no-op until Step 3's build actually exists.
   const spaDist = path.resolve(__dirname, '..', '..', 'dist');
   if (env.nodeEnv === 'production' && fs.existsSync(spaDist)) {
     app.use(express.static(spaDist));
@@ -50,12 +49,6 @@ async function main() {
   startKeepAlive();
 }
 
-// Render spins a free web service down after a period with no inbound
-// requests. This self-pings the service's own public URL every 3 minutes
-// so Render keeps seeing traffic - mirrors internal-auth-server's own
-// KeepAliveJob. RENDER_EXTERNAL_URL is injected automatically by Render
-// (no dashboard env var to set), so this is a no-op anywhere else (local
-// dev, CI) rather than pinging localhost.
 function startKeepAlive() {
   const selfUrl = process.env.RENDER_EXTERNAL_URL;
   if (!selfUrl) return;

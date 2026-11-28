@@ -1,3 +1,4 @@
+// Rejects requests that have no valid BFF session.
 import { env } from '../config/env.js';
 import { readSession } from '../lib/sessionStore.js';
 

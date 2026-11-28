@@ -43,18 +43,6 @@
   margin-bottom: 12px;
 }
 
-/* Responsive plan - Mobile Step 3a - stack search + create vertically
-   below 768px instead of side by side. .toolbar isn't touched here - on
-   this page it only ever holds one child (title/description), so
-   there's nothing in it to stack; .actionsRow is the row that actually
-   needs it. .searchBar's flex:1 only sizes width in a row layout, so
-   width:100% is added explicitly for the column direction - SearchBar's
-   own .searchGroup (SearchBar.module.css) is width:100% of *that* with
-   a 360px max-width, which never binds at phone widths (~330-370px
-   usable after this page's 24px padding), so nothing else needed there.
-   The Create button gets no className from RolesListPage.jsx, so it's
-   targeted via PatternFly's own emitted class - safe since .actionsRow
-   only ever holds the one button. */
 @media (max-width: 767px) {
   .actionsRow {
     flex-direction: column;
@@ -64,25 +52,11 @@
   .searchBar {
     width: 100%;
     flex: none;
-    /* Responsive plan - grows the search bar itself at phone width,
-       rather than shrinking the button to match it - SearchBar.module.css's
-       .searchGroup has a fixed 36px height everywhere else in the app
-       (used elsewhere too - AddMemberModal, JoinGroupModal - so it isn't
-       changed globally), but this page's .searchBar class lands on that
-       same <form> element (SearchBar.jsx merges both classNames onto one
-       node), so it can override height here without touching the shared
-       component. !important to be safe against .searchGroup's own fixed
-       height, same convention already used on .statusToggle in this file. */
     height: 36px !important;
   }
 
   .actionsRow :global(.pf-v6-c-button) {
     width: 100%;
-    /* Responsive plan - matches SearchBar.module.css's fixed 36px
-       .searchGroup height, now that Step 3a stacks them - side by side
-       this was never noticeable, but stacked full-width the mismatch
-       (this button's height comes from PatternFly's default padding/
-       font metrics, not a fixed value) reads as visibly cramped. */
     height: 36px !important;
     min-height: 36px !important;
     max-height: 36px !important;

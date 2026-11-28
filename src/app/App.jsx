@@ -1,3 +1,4 @@
+// Root layout that switches between the auth screens and the admin shell.
 import { useState } from 'react';
 import '@patternfly/react-core/dist/styles/base.css';
 import '../shared/patternfly-overrides.css';
@@ -9,7 +10,7 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../features/auth/ResetPasswordPage';
-import { useAuth } from '../shared/lib/authContext';
+import { useAuth } from '../shared/lib/useAuth';
 import ClientsListPage from '../features/clients/ClientsListPage';
 import CreateClientPage from '../features/clients/CreateClientPage';
 import ClientDetailPage from '../features/clients/ClientDetailPage';
@@ -27,9 +28,6 @@ import SessionsListPage from '../features/sessions/SessionsListPage';
 import SettingsPage from '../features/settings/SettingsPage';
 import styles from './App.module.css';
 
-// Step 5A/5B - auth screens get their own layout (no Sidebar - an
-// unauthenticated visitor shouldn't see the internal nav). Real gating of
-// the app-shell routes is Step 5E, not yet built.
 function AuthLayout() {
   return (
     <div className={styles.authShell}>
@@ -38,15 +36,6 @@ function AuthLayout() {
   );
 }
 
-// Responsive plan - iPad Step 2a - single shared open/closed boolean for
-// the collapsible nav. false is the default responsive behavior (icon
-// rail at <=1024px per Sidebar.module.css's media query, and eventually
-// full off-canvas hidden at phone widths once the Mobile phase lands);
-// true means the user has explicitly opened the nav back out despite
-// the narrow viewport. Lives here, not in Sidebar or Header, so both can
-// read/write it - Header's toggle button (iPad Step 2b) will set it,
-// Sidebar (iPad Step 2a) reads it, and the Mobile phase's Step 2a reuses
-// this same state for full off-canvas instead of a second toggle.
 function AppShell() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
@@ -54,9 +43,6 @@ function AppShell() {
     <div className={styles.shell}>
       <Header isNavOpen={isNavOpen} onToggleNav={setIsNavOpen} />
       <div className={styles.body}>
-        {/* Responsive plan - Mobile Step 2a - onClose lets the new
-            tap-to-close backdrop (Sidebar.jsx/Sidebar.module.css) collapse
-            the nav by writing back to this same isNavOpen state. */}
         <Sidebar isNavOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
         <main className={styles.content}>
           <AnimatedOutlet />
@@ -66,12 +52,6 @@ function AppShell() {
   );
 }
 
-// Step 5E - route guarding. Asks the BFF (via useAuth's GET /bff/auth/me,
-// Step 4F) whether the httpOnly session cookie is still valid; there is
-// nothing client-side to check instead. While that's in flight, render
-// nothing rather than flashing AppShell for a moment - once it resolves,
-// an unauthenticated visitor is sent to Login instead of ever reaching
-// the nav/content underneath.
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
 

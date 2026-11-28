@@ -1,8 +1,7 @@
+// Validation schema for creating a client application.
 import { z } from 'zod';
 import { refreshTokenFields, validateRefreshTokenFields } from './refreshTokenSettings';
 
-// Matches CreateClientApplicationRequest: only clientId and name are
-// required server-side (ClientApplicationServiceImpl#createClient).
 export const createClientSchema = z.object({
   clientId: z.string().trim().min(1, 'Client ID is required'),
   name: z.string().trim().min(1, 'Name is required'),

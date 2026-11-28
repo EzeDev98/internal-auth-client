@@ -1,3 +1,4 @@
+// Form for creating a top-level group.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
@@ -7,18 +8,9 @@ import AppBreadcrumb from '../../shared/components/Breadcrumb';
 import Button from '../../shared/components/Button';
 import { createGroup } from './api';
 import { createGroupSchema } from './createGroupSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './CreateGroupPage.module.css';
 
-// Replaces the top-level "Create group" modal on GroupsListPage - same
-// POST /groups call (Step 9B), restyled as its own routed page to match
-// Keycloak's own Create group screen, the same way CreateRolePage already
-// replaced CreateRoleModal (see that page's own comment for the general
-// rationale). Just Group name + Description here, same shape as
-// CreateRolePage. Subgroup creation (CreateGroupModal with a
-// parentGroupName, opened from GroupDetailPage) is untouched - that stays
-// a modal, since it's a secondary action nested inside a group's own page
-// rather than the primary "Create group" flow this replaces.
 export default function CreateGroupPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);

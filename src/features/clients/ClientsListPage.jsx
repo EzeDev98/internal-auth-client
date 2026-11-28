@@ -1,3 +1,4 @@
+// Paged, searchable list of client applications.
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -30,11 +31,6 @@ const COLUMNS = [
   },
 ];
 
-// Step 6A - list, backed by Step 2B's GET /client-applications (which
-// already existed on the server despite the plan marking it "Needed" -
-// confirmed by reading ClientApplicationController directly). The Client ID
-// column links to Step 6C's detail/edit page. Column sort isn't wired to
-// the backend yet, so no column here claims to be sortable.
 export default function ClientsListPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -51,12 +47,6 @@ export default function ClientsListPage() {
   const rows = data?.content ?? [];
   const itemCount = data?.totalElements ?? 0;
 
-  // The clients endpoint has no search param on the backend (unlike
-  // /users), so this filters the currently loaded page client-side by
-  // clientId/name rather than querying the server. Filters live on every
-  // keystroke (searchInput) rather than waiting for submit - the client
-  // list is already loaded in memory, so there's no request to debounce.
-  // Filtering itself now lives in the shared useClientSideSearch hook.
   const filteredRows = useClientSideSearch(rows, searchInput, matchClientRow);
 
   return (

@@ -1,17 +1,9 @@
+// Responsive data table with an empty state.
 import { useEffect, useRef, useState } from 'react';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { Pagination } from '@patternfly/react-core';
 import styles from './DataTable.module.css';
 
-// Responsive plan - Mobile Step 4a - edge-fade scroll affordance, gated
-// on actual overflow rather than a blanket CSS mask (a static mask would
-// fade the edge even on pages where every column already fits at phone
-// width and there's nothing to scroll to). Reads scrollWidth/clientWidth
-// off the .tableScroll div itself rather than taking a ref on <Table>,
-// since this app doesn't otherwise depend on @patternfly/react-table's
-// ref-forwarding - scrollEl.firstElementChild (the rendered <table> DOM
-// node) is used directly for the second ResizeObserver instead, which
-// works regardless of PatternFly's ref API.
 function useScrollFade(scrollRef) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -26,18 +18,12 @@ function useScrollFade(scrollRef) {
     const update = () => {
       const { scrollLeft, scrollWidth, clientWidth } = scrollEl;
       setCanScrollLeft(scrollLeft > 0);
-      // 1px tolerance for sub-pixel rounding right at the scroll end.
       setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
     };
 
     update();
     scrollEl.addEventListener('scroll', update, { passive: true });
 
-    // Two observers, not one: .tableScroll catches a viewport resize
-    // (its own clientWidth changing); the <table> node catches
-    // content/column-driven scrollWidth changes (e.g. data loading in
-    // with a long value) that leave .tableScroll's own size untouched -
-    // a plain scroll listener would miss both.
     const resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(scrollEl);
     if (tableEl) {
@@ -76,16 +62,6 @@ export default function DataTable({
   emptyState,
   isSearching = false,
   isCompact = false,
-  // Opt-in alternative to PatternFly's default card-stacking on narrow
-  // screens (Th/Td dataLabel + container-query grid mode). Meant for
-  // tables with a couple of short columns (e.g. Name/Description) where
-  // stacking into label:value pairs is overkill - renders as a plain
-  // fixed-layout 2-column table instead, at every width. Also needed
-  // whenever a column uses the 'truncate' or 'nowrap' modifier: those
-  // force white-space: nowrap, which can blow the table's rendered
-  // width past the grid mode's own container-query breakpoint and
-  // force horizontal scrolling instead of stacking - simpleTable resets
-  // that so long values wrap within the column instead.
   simple = false,
 }) {
   const getSortParams = (columnIndex) => ({
@@ -130,11 +106,6 @@ export default function DataTable({
         <Tbody>
           {rows.length === 0 ? (
             <Tr>
-              {/* isSearching means these rows are search-filtered from a
-                  non-empty dataset - "no data at all" empty states (a rich
-                  emptyState card with a Create CTA, or emptyStateMessage)
-                  would be misleading here, so a plain no-matches message
-                  always wins over either when a search is active. */}
               <Td colSpan={columns.length}>
                 {isSearching ? 'No results match your search.' : (emptyState ?? emptyStateMessage)}
               </Td>

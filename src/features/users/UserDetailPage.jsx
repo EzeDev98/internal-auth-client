@@ -1,3 +1,4 @@
+// User detail screen with details, credentials, roles and groups.
 import {
   useState, useEffect, useMemo, useRef,
 } from 'react';
@@ -29,14 +30,9 @@ import { listGroups, addGroupMember, removeGroupMember } from '../groups/api';
 import { revokeSession } from '../sessions/api';
 import { resetUserPasswordSchema } from './resetUserPasswordSchema';
 import { updateUserSchema } from './updateUserSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './UserDetailPage.module.css';
 
-// Small reusable danger-confirm modal, shared by the Roles tab's
-// "Unassign" action and (Step 5) the Permission Groups tab's "Leave"
-// action - same shape as groups/DeleteGroupModal.jsx's own confirm
-// pattern (danger-variant confirm button, no other fields), just generic
-// enough for both callers instead of two near-identical one-offs.
 function ConfirmActionModal({
   title, body, confirmLabel, isLoading, error, onConfirm, onClose, variant = 'danger',
 }) {
@@ -58,20 +54,14 @@ function ConfirmActionModal({
   );
 }
 
-// Step 7B - detail tabs, backed by Steps 2A/2E's GET /users/{username},
-// GET /users/{username}/roles, GET /users/{username}/permission-groups,
-// and GET /admin/sessions (all already existed on the server despite the
-// plan marking them "Needed"). The plan's separate "Permissions" tab is
-// folded into "Permission Groups" here - RolePermissionSummary's own
-// Javadoc documents fine-grained permissions as always an empty list for
-// every role today, so a tab dedicated to them would only ever render
-// empty.
-// Overview tab, backed by the existing PATCH /users/{username}
-// (AdminUserController#updateUser) - enabled/emailVerified/phoneVerified
-// are the only editable fields (AdminUpdateUserRequest's own Javadoc);
-// username/email/phone/createdAt/mfaEnabled stay read-only. Same
-// Save/Revert shape as ClientDetailPage's own Settings tab, reusing its
-// useEffect-driven reset-on-refetch pattern rather than a one-off here.
+function toFormValues(user) {
+  return {
+    enabled: user.enabled,
+    emailVerified: user.emailVerified,
+    phoneVerified: user.phoneVerified,
+  };
+}
+
 function OverviewTab({ user, username, clientId }) {
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState(null);
@@ -83,19 +73,21 @@ function OverviewTab({ user, username, clientId }) {
 
   const resetToUser = (current) => {
     if (!current) return;
-    reset({
-      enabled: current.enabled,
-      emailVerified: current.emailVerified,
-      phoneVerified: current.phoneVerified,
-    });
+    reset(toFormValues(current));
     setServerError(null);
     setSaved(false);
   };
 
+  const [syncedUser, setSyncedUser] = useState(null);
+  if (user && user !== syncedUser) {
+    setSyncedUser(user);
+    setServerError(null);
+    setSaved(false);
+  }
+
   useEffect(() => {
-    resetToUser(user);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    if (user) reset(toFormValues(user));
+  }, [user, reset]);
 
   const onSubmit = async (values) => {
     setServerError(null);
@@ -118,10 +110,6 @@ function OverviewTab({ user, username, clientId }) {
         <TextInput id="id" value={String(user.id)} readOnlyVariant="default" />
       </FormGroup>
 
-      {/* clientId was already threaded through as a prop (used to scope
-          every API call on this page) but never actually shown - this is
-          the one place an admin can see which integrating app a user
-          belongs to without cross-referencing the Clients tab manually. */}
       <FormGroup label="Client application" fieldId="clientId">
         <TextInput id="clientId" value={clientId ?? '—'} readOnlyVariant="default" />
       </FormGroup>
@@ -134,11 +122,6 @@ function OverviewTab({ user, username, clientId }) {
         />
       </FormGroup>
 
-      {/* Username/email/phone/MFA aren't editable here - only
-          enabled/emailVerified/phoneVerified are (updateUserSchema, and
-          the docstring above) - so these render readOnlyVariant="default"
-          like ID/Created at above, same as ClientDetailPage's own
-          non-editable Client ID field, rather than live inputs. */}
       <FormGroup label="Username" fieldId="username">
         <TextInput id="username" value={user.username} readOnlyVariant="default" />
       </FormGroup>
@@ -185,10 +168,6 @@ function OverviewTab({ user, username, clientId }) {
         />
       </FormGroup>
 
-      <FormGroup label="MFA enabled" fieldId="mfaEnabled">
-        <TextInput id="mfaEnabled" value={user.mfaEnabled ? 'Yes' : 'No'} readOnlyVariant="default" />
-      </FormGroup>
-
       <FormGroup label="Enabled" fieldId="enabled">
         <Controller
           name="enabled"
@@ -220,12 +199,6 @@ const ROLE_COLUMNS_BASE = [
   { key: 'description', label: 'Description', modifier: 'truncate', render: (row) => row.description || '—' },
 ];
 
-// Roles tab, backed by the existing GET/POST /users/{username}/roles and
-// DELETE /users/{username}/roles/{roleName} (PermissionController). Same
-// DataTable + tabActionsRow (search + primary action) + ActionsMenu shape
-// as GroupDetailPage's own "Role mapping" tab - no "Inherited" column,
-// since fetchUserRoles has no concept of an inherited-vs-direct role for
-// a user (that's a group-membership idea, not modelled here).
 function RolesTab({ username }) {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -233,16 +206,13 @@ function RolesTab({ username }) {
   const [dropdownClosed, setDropdownClosed] = useState(false);
   const searchWrapperRef = useRef(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
-  const [unassignTarget, setUnassignTarget] = useState(null); // null | roleName
+  const [unassignTarget, setUnassignTarget] = useState(null);
   const [unassignError, setUnassignError] = useState(null);
   const [isUnassigning, setIsUnassigning] = useState(false);
-  const [quickAssignTarget, setQuickAssignTarget] = useState(null); // null | roleName
+  const [quickAssignTarget, setQuickAssignTarget] = useState(null);
   const [quickAssignError, setQuickAssignError] = useState(null);
   const [isQuickAssigning, setIsQuickAssigning] = useState(false);
 
-  // Typing always reopens the dropdown; only a selection or an outside
-  // click closes it early, so narrowing/widening the search text doesn't
-  // require refocusing anything.
   const setSearchInput = (value) => {
     setSearchInputRaw(value);
     setDropdownClosed(false);
@@ -270,7 +240,7 @@ function RolesTab({ username }) {
     queryFn: () => getUserRoles(username),
   });
 
-  const roles = data ?? [];
+  const roles = useMemo(() => data ?? [], [data]);
   const assignedRoleNames = useMemo(() => new Set(roles.map((role) => role.roleName)), [roles]);
 
   const {
@@ -453,12 +423,6 @@ function RolesTab({ username }) {
   );
 }
 
-// Step 2H - Credentials tab, backed by GET /users/{username}/credentials
-// and the "Reset password" action's POST /users/{username}/credentials/reset
-// (both new - see AdminUserController). This app stores one password
-// credential per user (see UserCredentialResponse's Javadoc), so unlike
-// the Keycloak reference this is always a single row, with no "Show data"
-// affordance - the server never returns the hash itself, only metadata.
 function CredentialsTab({ username, clientId }) {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -577,16 +541,6 @@ const GROUP_COLUMNS_BASE = [
   { key: 'description', label: 'Description', modifier: 'truncate', render: (row) => row.description || '—' },
 ];
 
-// Step 5 - Permission Groups tab, backed by the existing GET
-// /users/{username}/permission-groups plus the groups feature's own
-// POST /groups/{groupName}/users and DELETE /groups/{groupName}/users/{username}
-// (PermissionController#addUsersToGroup / #removeUserFromGroup) - reused
-// as-is from groups/api.js rather than duplicated, since they already do
-// exactly this from the group's side (GroupDetailPage's Members tab). Same
-// DataTable + tabActionsRow + ActionsMenu shape as the Roles tab above; no
-// "Path"/"Direct membership" columns since fetchUserPermissionGroups has
-// no hierarchy data for a user, same reasoning as Roles' missing
-// "Inherited" column.
 function PermissionGroupsTab({ username }) {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -594,15 +548,13 @@ function PermissionGroupsTab({ username }) {
   const [dropdownClosed, setDropdownClosed] = useState(false);
   const searchWrapperRef = useRef(null);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
-  const [leaveTarget, setLeaveTarget] = useState(null); // null | groupName
+  const [leaveTarget, setLeaveTarget] = useState(null);
   const [leaveError, setLeaveError] = useState(null);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [quickJoinTarget, setQuickJoinTarget] = useState(null); // null | groupName
+  const [quickJoinTarget, setQuickJoinTarget] = useState(null);
   const [quickJoinError, setQuickJoinError] = useState(null);
   const [isQuickJoining, setIsQuickJoining] = useState(false);
 
-  // Same search-catalog + dropdown pattern as RolesTab's own: typing always
-  // reopens the dropdown; only a selection or an outside click closes it.
   const setSearchInput = (value) => {
     setSearchInputRaw(value);
     setDropdownClosed(false);
@@ -630,12 +582,9 @@ function PermissionGroupsTab({ username }) {
     queryFn: () => getUserPermissionGroups(username),
   });
 
-  const groups = data ?? [];
+  const groups = useMemo(() => data ?? [], [data]);
   const joinedGroupNames = useMemo(() => new Set(groups.map((group) => group.groupName)), [groups]);
 
-  // Full group catalog, fetched lazily like RolesTab's own catalog query -
-  // only once the user starts typing - to find groups to join, decoupled
-  // from the (already-joined) rows the table below shows.
   const {
     data: catalog, isLoading: catalogLoading, isError: catalogIsError,
   } = useQuery({
@@ -718,9 +667,6 @@ function PermissionGroupsTab({ username }) {
   return (
     <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={refetch}>
       <div className={styles.tabActionsRow}>
-        {/* styles.roleDropdown* classes are RolesTab's own dropdown styles,
-            reused as-is - same generic anchored-search-dropdown look, not
-            role-specific despite the name. */}
         <div className={styles.searchWrapper} ref={searchWrapperRef}>
           <SearchBar
             value={searchInput}
@@ -830,13 +776,6 @@ const SESSION_COLUMNS = [
   },
 ];
 
-// Step - "Logout all sessions" action, reusing the same
-// DELETE /users/{username}/sessions?clientId=... the standalone Sessions -
-// List screen's own Revoke action already calls (revokeSession).
-// The upstream endpoint invalidates the user's active session(s) as a
-// whole - there's no per-row/per-session id to target - so this is one
-// bulk action above the table, matching Keycloak's own placement, rather
-// than a per-row action.
 function SessionsTab({ username, clientId }) {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -852,12 +791,8 @@ function SessionsTab({ username, clientId }) {
     queryFn: () => getUserSessions(username, clientId),
   });
 
-  const rows = data?.content ?? [];
+  const rows = useMemo(() => data?.content ?? [], [data]);
 
-  // No search param on this endpoint (unlike the standalone Sessions list's
-  // ipAddress/device filters) - it always returns the user's full session
-  // history in one page, so filtering by IP/device happens client-side,
-  // same as GroupsListPage's own search over its unpaginated listGroups().
   const filteredRows = useMemo(() => {
     if (!search) return rows;
     const needle = search.toLowerCase();

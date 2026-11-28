@@ -1,3 +1,4 @@
+// Settings screen for signing keys and the full data wipe.
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,7 +9,7 @@ import QueryState from '../../shared/components/QueryState';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import { listSigningKeys, rotateSigningKey, wipeAll } from './api';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './SettingsPage.module.css';
 
 const DASH = String.fromCharCode(8212);
@@ -29,14 +30,6 @@ const COLUMNS = [
   },
 ];
 
-// Step 11A - Settings - Signing keys panel, replacing App.jsx's SettingsDemo
-// placeholder. Backed by the new GET ${app.title}/admin/signing-keys for
-// the current-key/history list (this feature's own api.js explains why
-// that endpoint is additive) and the existing POST
-// /admin/signing-keys/rotate for the action. Unpaginated - SigningKeyService
-// #listKeys returns the server's full key history in one shot, not
-// something with page/size params to forward - so DataTable is used here
-// without its pagination props (its own onSetPage prop is optional).
 export default function SettingsPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -44,7 +37,6 @@ export default function SettingsPage() {
   const [rotateError, setRotateError] = useState(null);
   const [isRotating, setIsRotating] = useState(false);
 
-  // Danger zone - "wipe everything" (SyncPoint + Notare + internal-auth).
   const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState('');
   const [includeSystemWallet, setIncludeSystemWallet] = useState(false);

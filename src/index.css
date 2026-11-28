@@ -1,7 +1,3 @@
-/* Global reset only. Design tokens live in shared/tokens.css; every
-   component's own visual styling belongs in its own Component.module.css
-   (Step 3F) - nothing app-specific belongs in this file. */
-
 *,
 *::before,
 *::after {

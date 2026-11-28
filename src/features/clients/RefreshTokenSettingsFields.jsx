@@ -1,12 +1,10 @@
+// Shared refresh token and session settings fields for client forms.
 import { Controller } from 'react-hook-form';
 import {
   FormGroup, Switch, TextInput, Alert, FormHelperText, HelperText, HelperTextItem,
 } from '@patternfly/react-core';
 import { MIN_REFRESH_TOKEN_TTL_DAYS, MAX_REFRESH_TOKEN_TTL_DAYS, MAX_SESSION_LIFETIME_DAYS } from './refreshTokenSettings';
 
-// Shared by CreateClientPage (Capability config step) and ClientDetailPage
-// (Settings tab). Renders inside a react-hook-form <Form>; the parent owns
-// the form and passes control/register/errors plus the watched toggle value.
 export default function RefreshTokenSettingsFields({
   control, register, errors, isPersistent, isDisabled = false, disabledReason,
 }) {

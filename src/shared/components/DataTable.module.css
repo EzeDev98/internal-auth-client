@@ -41,13 +41,6 @@
   margin-top: 8px;
 }
 
-/* DataTable's `simple` prop - plain fixed 2(+)-column table, no
-   card-stacking, no horizontal scroll, at every width. table-layout:fixed
-   + width:100% overrides the desktop full-bleed sizing above (.table's
-   own margin/width) and the iPad/phone min-width:max-content override
-   below, so the table's own rendered width is always bounded by its
-   container regardless of cell content - that's what made it safe to
-   stop fighting the 'nowrap'/'truncate' column modifiers below. */
 .simpleTable {
   table-layout: fixed !important;
   width: 100% !important;
@@ -55,21 +48,6 @@
   min-width: 0 !important;
 }
 
-/* First cut forced every cell to wrap (white-space: normal), which beat
-   a short id-style column (e.g. Name/"create-admin") into an ugly
-   mid-word break instead of just sitting on one line, and let a long
-   value (e.g. Description) wrap across many lines, ballooning row
-   height and, with it, the padding around anything else in that row
-   (an actions kebab menu, say) that just centers itself vertically.
-   With table-layout:fixed already capping the table's width (above),
-   it's safe to let 'nowrap'/'truncate' columns behave as PatternFly
-   intends - nowrap keeps a short value on one line, truncate clips a
-   long one to one line with an ellipsis - without either reintroducing
-   the horizontal-scroll bug this prop exists to fix. Targets
-   PatternFly's own :global() modifier classes rather than column
-   position, so it applies to any 'simple' table's nowrap/truncate
-   columns, whatever their order. A column with neither modifier keeps
-   the base table's default (wraps normally) untouched. */
 .simpleTable :global(.pf-m-nowrap) {
   white-space: nowrap;
 }
@@ -81,16 +59,6 @@
   white-space: nowrap;
 }
 
-/* Responsive plan - iPad Step 4a - horizontal-scroll container for the
-   table itself, not .wrapper (which also holds Pagination below it - we
-   don't want pagination scrolling sideways along with the table). At this
-   width the table drops its desktop full-bleed trick (margin: 0 -24px on
-   .table) and .tableScroll takes over that same bleed instead, now paired
-   with overflow-x so excess column width scrolls inside the page rather
-   than blowing out the page's own horizontal scrollbar.
-   max-width: 1024px also covers every phone width, so the Mobile phase's
-   Step 4 inherits this for free - don't redo it there, only verify touch/
-   momentum scrolling feels right (Mobile Step 4a). */
 @media (max-width: 1024px) {
   .tableScroll {
     overflow-x: auto;
@@ -104,11 +72,6 @@
   }
 }
 
-/* Responsive plan - Mobile Step 4a - edge-fade classes, applied by
-   DataTable.jsx's useScrollFade hook only when there's real overflow to
-   hint at. Scoped to <=767px deliberately - iPad Step 4a never asked
-   for this affordance, so the rail-width behavior (768-1024px) is left
-   untouched even though the classes would work there too. */
 @media (max-width: 767px) {
   .tableScroll.canScrollRight {
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
@@ -125,15 +88,6 @@
     mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
   }
 
-  /* Below this width, a non-simple DataTable falls into PatternFly's own
-     built-in "grid" stacked layout: each td gets a data-label attribute,
-     shown via a ::before pseudo-element (PatternFly's own documented
-     mechanism), sitting next to the cell's real content. Rather than
-     depend on PatternFly's own internal column math for that pairing
-     (which left labels and values far apart), force it directly: the td
-     becomes a plain flex row, so ::before (the label) and the cell's
-     actual child content sit right next to each other with a small,
-     fixed gap - independent of any desktop column width. */
   .table:not(.simpleTable) tbody td[data-label] {
     display: grid !important;
     grid-template-columns: 140px 1fr !important;
@@ -145,13 +99,6 @@
     font-weight: 600;
   }
 
-  /* The iPad-range rule above (min-width: max-content) is for a table
-     that's still genuinely tabular and needs horizontal scroll. Below
-     this width the table has already switched to PatternFly's stacked
-     label/value layout, so forcing it to stay as wide as its unwrapped
-     content just drags the whole table into unnecessary horizontal
-     scroll - cap it back to the viewport and let each stacked value
-     wrap normally instead. */
   .table:not(.simpleTable) {
     min-width: 0;
     width: 100%;

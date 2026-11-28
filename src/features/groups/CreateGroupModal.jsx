@@ -1,3 +1,4 @@
+// Modal for creating a sub-group.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,15 +7,9 @@ import Modal from '../../shared/components/Modal';
 import Button from '../../shared/components/Button';
 import { createGroup, createSubgroup } from './api';
 import { createGroupSchema } from './createGroupSchema';
-import { useToast } from '../../shared/lib/toastContext';
+import { useToast } from '../../shared/lib/useToast';
 import styles from './CreateGroupModal.module.css';
 
-// Step 9B - existing POST /groups (top-level) and POST
-// /groups/{parentGroupName}/subgroups (PermissionController#createSuperGroup
-// / #createSubGroup), wired to a single modal shared by both cases -
-// presence of `parentGroupName` picks the endpoint, since both requests
-// carry the same groupName + description shape. No secret/reveal step,
-// same as CreateRoleModal - neither response carries a sensitive value.
 export default function CreateGroupModal({ parentGroupName, onClose, onCreated }) {
   const [serverError, setServerError] = useState(null);
   const toast = useToast();

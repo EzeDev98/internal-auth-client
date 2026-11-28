@@ -1,3 +1,4 @@
+// Redis-backed store for BFF login sessions.
 import { redisClient } from './redisClient.js';
 
 const SESSION_PREFIX = 'bff:session:';

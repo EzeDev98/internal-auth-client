@@ -1,18 +1,3 @@
-/* Global override of the browser/PatternFly focus ring on every form
-   field in the app (TextInput, TextArea, FormSelect all render down to a
-   native input/select/textarea element in the end) - not scoped to a
-   single page's CSS Module since the request was "any of the forms in
-   this app".
-
-   The first attempt at this targeted PatternFly's own component class
-   (.pf-v6-c-form-control) and a guess at its focus custom-properties -
-   that didn't actually take (still showed the blue ring), which means
-   whatever's drawing it has higher specificity or isn't wired through
-   those properties in this version. This version targets the native
-   element selectors directly with !important instead, so it doesn't
-   depend on knowing PatternFly's internal class names/version at all -
-   there's nothing between this rule and the actual <input>/<select>/
-   <textarea> the browser is drawing the ring on. */
 input:focus,
 input:focus-visible,
 select:focus,
@@ -25,28 +10,6 @@ button:focus-visible {
   box-shadow: none !important;
 }
 
-
-/* Global spacing relax - every card/form/input/BUTTON in the app (Login,
-   Register, Reset password, Create User/Client/Role/Group modals) was
-   rendering noticeably tighter than the reference design.
-
-   First attempt at this patched .pf-v6-c-form-control's own local
-   --PaddingBlockStart--base/--inset--base copies directly. That grew the
-   inputs, but the "Log in" button stayed cramped - because Button reads
-   vertical padding from the *same underlying design token*
-   (--pf-t--global--spacer--control--vertical--default) via its own
-   separate local copy, which the form-control-scoped override never
-   touched. Any other control that reads that shared token (MenuToggle/
-   Select, Slider, Pagination's page-select, etc.) would have been missed
-   the same way.
-
-   This version overrides the shared global design tokens themselves,
-   one level up, instead of patching each component's local mirror of
-   them. Since every PatternFly control derives its control-sizing
-   padding from these two tokens, this is the actual single point that
-   relaxes inputs and buttons (and any future control) together - not
-   three separate per-component patches that have to be kept in sync by
-   hand. */
 :root {
   --pf-t--global--spacer--control--vertical--default: 0.75rem;
   --pf-t--global--spacer--control--horizontal--default: 1.125rem;
@@ -64,32 +27,10 @@ button:focus-visible {
   --pf-v6-c-card--first-child--PaddingBlockStart: 2.5rem !important;
 }
 
-/* The padding/button-height relax above still left every form looking
-   small next to the reference, because the submit button (Login, Create
-   admin account, Verify, etc.) was never actually the problem's biggest
-   contributor - measured side by side with the reference, it was only
-   ~200px wide against a ~700px-wide reference button, because PatternFly's
-   Button only sizes itself to fit its label text. It was sitting small and
-   left-aligned in the card no matter how much input/card padding grew.
-   ActionGroup (the wrapper Login/Register/ForgotPassword/ResetPassword/
-   every modal's submit button renders inside) is the one shared wrapper
-   every one of those buttons already passes through, so making it stretch
-   its child here is a single rule that reaches every form's primary
-   button at once - same reasoning as the rest of this file. */
 .pf-v6-c-form__actions .pf-v6-c-button {
   width: 100%;
 }
 
-/* Removes the underline PatternFly puts on every link app-wide (Register,
-   Forgot password, Log in, Back to login, etc. - every one of them is a
-   plain <a> from react-router's <Link>, so this reaches all of them from
-   one rule). Verified in base.css: the dashed underline comes from
-   :where(a) { text-decoration-style: dashed; ... }, and :where() carries
-   zero specificity by design, so a plain `a` rule here overrides it
-   outright with no !important needed. This also folds in the earlier
-   hover/focus color-and-underline-change removal - same reasoning, same
-   zero-specificity :where(a:hover, a:focus) origin - so links keep one
-   flat, non-underlined look in every state. */
 a,
 a:hover,
 a:focus,
@@ -98,16 +39,10 @@ a:visited {
   color: var(--pf-t--global--text--color--link--default);
 }
 
-/* Every Dropdown menu in the app renders through PatternFly's Menu
-   component, which draws its own rounded popover box (pf-v6-c-menu)
-   independent of the toggle button's own border-radius. Capping it
-   here keeps it in line with --radius (2px) used everywhere else. */
 .pf-v6-c-menu {
   border-radius: var(--radius) !important;
 }
 
-/* Every Alert (inline banners and the toasts from toastContext) uses the same
-   4px corner radius, instead of PatternFly's larger default. */
 .pf-v6-c-alert {
   border-radius: 4px !important;
 }

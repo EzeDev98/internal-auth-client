@@ -24,13 +24,7 @@
 .formBody {
   max-width: 1100px;
   --pf-t--global--spacer--control--vertical--default: 0.4rem;
-  /* Keycloak/Create client both have square-cornered fields, unlike this
-     app's rounded default read by FormControl/FormSelect alike - same
-     token CreateClientPage's .wizard already zeroes out, scoped here
-     instead so nothing outside this page changes. */
   --pf-t--global--border--radius--control--form-element: 0;
-  /* Label column narrowed so the field itself reads as ~80% of the row
-     width, instead of PatternFly's own fixed 9.375rem label column. */
   --pf-v6-c-form--m-horizontal__group-label--md--GridColumnWidth: 20%;
   --pf-v6-c-form--m-horizontal__group-control--md--GridColumnWidth: 80%;
 }

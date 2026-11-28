@@ -1,3 +1,4 @@
+// Modal for assigning a role to a user.
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,9 +16,6 @@ import { assignRoleSchema } from '../groups/assignRoleSchema';
 import { assignRoleToUser } from './api';
 import styles from './AssignRoleModal.module.css';
 
-// Same RoleDropdown pattern as groups/AssignRoleModal.jsx's own - a real
-// anchored PatternFly Dropdown/MenuToggle instead of a native <select>
-// (native popup can't be restyled - same reasoning documented there).
 function RoleDropdown({
   value, onChange, roles, isLoading, isError,
 }) {
@@ -62,11 +60,6 @@ function RoleDropdown({
   );
 }
 
-// Roles tab "Assign role" button - existing POST /users/{username}/roles
-// (PermissionController#assignRoleToUser). Reuses groups/assignRoleSchema
-// directly rather than duplicating it - the request body is identical
-// ({ roleName }) - and Step 8A's existing listRoles() to populate the
-// picker, same pattern as groups/AssignRoleModal.jsx.
 export default function AssignRoleModal({ username, onClose, onAssigned }) {
   const [serverError, setServerError] = useState(null);
 
